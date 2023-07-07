@@ -19,7 +19,7 @@ public class ItemRepositoryImpl implements ItemRepository {
 
     @Override
     public Optional<Item> getById(long id) {
-        for (Map.Entry<Long, Map<Long, Item>> entry : itemsByOwner.entrySet()) {
+        for (final Map.Entry<Long, Map<Long, Item>> entry : itemsByOwner.entrySet()) {
             final Map<Long, Item> ownerItems = entry.getValue();
 
             if (ownerItems.containsKey(id)) {
@@ -82,8 +82,12 @@ public class ItemRepositoryImpl implements ItemRepository {
                 .filter(containsInNameOrDescriptionPredicate)
                 .collect(Collectors.toUnmodifiableList());
 
-
         return searchResult;
+    }
+
+    @Override
+    public boolean contains(long id) {
+        return itemsByOwner.values().stream().anyMatch(x -> x.containsKey(id));
     }
 
     @Override

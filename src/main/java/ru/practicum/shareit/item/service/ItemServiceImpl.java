@@ -2,13 +2,14 @@ package ru.practicum.shareit.item.service;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.common.NotFoundException;
-import ru.practicum.shareit.item.exception.NotOwnerAccessException;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
+import ru.practicum.shareit.item.exception.ItemNotFoundException;
+import ru.practicum.shareit.item.exception.NotOwnerAccessException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -29,7 +30,7 @@ public class ItemServiceImpl implements ItemService {
         final Optional<User> ownerOpt = userRepository.findById(ownerId);
 
         if (ownerOpt.isEmpty()) {
-            throw new NotFoundException(String.format("Пользователь с id = %s не найден", ownerId));
+            throw new UserNotFoundException(ownerId);
         }
 
         final User owner = ownerOpt.get();
@@ -45,9 +46,8 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto update(long id, ItemDto item, long ownerId) {
-        // ToDo
-        // Проверка есть ли вещь по id
-        // Проверка есть ли пользователь по id
+        checkItemExists(id);
+        checkUserExists(ownerId);
         checkUserOwnItem(ownerId, id);
 
         // Обновление
@@ -76,13 +76,8 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto getOwnerItemById(long itemId, long ownerId) {
-        // ToDo
-        // Проверка есть ли вещь по id
-        // Проверка есть ли пользователь по id
-        // ToDo 2
-        // Как можно объединять проверки?
-        // По идее 3 проверки - 3 потенциальных запроса в БД.
-        // Ну или как минимум не удобно. Хотелось бы в проверке принадлежит ли вещь владельцу проверять и наличие вещи и владельца.
+        checkItemExists(itemId);
+        checkUserExists(ownerId);
 
         final Optional<Item> itemOpt = itemRepository.getByIdAndOwnerId(itemId, ownerId);
         final Item item = unpackItem(itemOpt, itemId);
@@ -92,8 +87,8 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> getAllOwnerItems(long ownerId) {
-        // ToDo
-        // Проверка, что пользователь есть?
+        checkUserExists(ownerId);
+
         final List<Item> ownerItems = itemRepository.getOwnerItems(ownerId);
         return ownerItems.stream().map(ItemMapper::toItemDto).collect(toUnmodifiableList());
     }
@@ -112,7 +107,7 @@ public class ItemServiceImpl implements ItemService {
 
     private Item unpackItem(Optional<Item> itemOpt, long id) {
         if (itemOpt.isEmpty()) {
-            throw new NotFoundException(String.format("Вещь с id = %s не найдена", id));
+            throw new ItemNotFoundException(id);
         }
 
         return itemOpt.get();
@@ -121,6 +116,18 @@ public class ItemServiceImpl implements ItemService {
     private void checkUserOwnItem(long userId, long itemId) {
         if (!itemRepository.checkUserOwnItem(userId, itemId)) {
             throw new NotOwnerAccessException(String.format("Вещь с id = %s не принадлежит пользователю с id = %s", itemId, userId));
+        }
+    }
+
+    private void checkUserExists(long userId) {
+        if (!userRepository.containsById(userId)) {
+            throw new UserNotFoundException(userId);
+        }
+    }
+
+    private void checkItemExists(long itemId) {
+        if (!itemRepository.contains(itemId)) {
+            throw new ItemNotFoundException(itemId);
         }
     }
 }

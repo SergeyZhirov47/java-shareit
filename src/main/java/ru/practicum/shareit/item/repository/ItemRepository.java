@@ -18,5 +18,7 @@ public interface ItemRepository {
 
     List<Item> search(String text, long userId);
 
+    boolean contains(long id);
+
     boolean checkUserOwnItem(long userId, long itemId);
 }
