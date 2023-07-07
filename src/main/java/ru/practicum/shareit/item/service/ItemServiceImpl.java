@@ -3,7 +3,7 @@ package ru.practicum.shareit.item.service;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.common.NotFoundException;
-import ru.practicum.shareit.item.NotOwnerAccessException;
+import ru.practicum.shareit.item.exception.NotOwnerAccessException;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
