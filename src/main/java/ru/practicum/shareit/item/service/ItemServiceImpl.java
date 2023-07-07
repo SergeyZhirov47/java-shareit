@@ -110,18 +110,6 @@ public class ItemServiceImpl implements ItemService {
         return searchResult.stream().map(ItemMapper::toItemDto).collect(toUnmodifiableList());
     }
 
-    /*
-    private Item getItemById(Long id) {
-        final Optional<Item> itemOpt = itemRepository.getById(id);
-
-        if (itemOpt.isEmpty()) {
-            throw new NotFoundException(String.format("Предмет с id = %s не найден", id));
-        }
-
-        return itemOpt.get();
-    }
-     */
-
     private Item unpackItem(Optional<Item> itemOpt, long id) {
         if (itemOpt.isEmpty()) {
             throw new NotFoundException(String.format("Вещь с id = %s не найдена", id));

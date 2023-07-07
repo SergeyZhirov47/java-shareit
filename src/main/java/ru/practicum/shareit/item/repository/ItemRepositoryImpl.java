@@ -55,15 +55,6 @@ public class ItemRepositoryImpl implements ItemRepository {
         final Long itemId = idGenerator.getNext();
         item.setId(itemId);
 
-        /*
-        final List<Item> ownerItems = items.get(ownerId);
-        if (isNull(ownerItems)) {
-            items.put(ownerId, new ArrayList<>());
-        } else {
-            ownerItems.add(item);
-        }
-        */
-
         final Map<Long, Item> ownerItems = itemsByOwner.getOrDefault(ownerId, new HashMap<>());
         ownerItems.put(itemId, item);
         itemsByOwner.put(ownerId, ownerItems);
@@ -82,25 +73,15 @@ public class ItemRepositoryImpl implements ItemRepository {
 
     @Override
     public List<Item> search(String text, long userId) {
-        //final List<Item> searchResult = new ArrayList<>();
-
         final Predicate<Item> containsInNameOrDescriptionPredicate = (item -> item.getName().toLowerCase().contains(text)
                 || item.getDescription().toLowerCase().contains(text));
 
         final List<Item> searchResult = itemsByOwner.values().stream()
-               // .filter(x -> !x.containsKey(userId)) // нелогично видеть в поиске свои вещи. мне так кажется
                 .flatMap(x -> x.values().stream())
                 .filter(Item::isAvailable)
                 .filter(containsInNameOrDescriptionPredicate)
                 .collect(Collectors.toUnmodifiableList());
-/*
-        for (final Map<Long, Item> items : itemsByOwner.values()) {
-            for (final Item item : items.values()) {
-                if (item.getName().contains(searchText) || item.getDescription().contains(searchText)) {
-                    searchResult.add(item);
-                }
-            }
-        }*/
+
 
         return searchResult;
     }
