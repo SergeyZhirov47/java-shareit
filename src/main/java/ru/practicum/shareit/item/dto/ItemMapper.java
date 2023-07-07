@@ -1,11 +1,10 @@
 package ru.practicum.shareit.item.dto;
 
+import ru.practicum.shareit.common.AbstractMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
-import static java.util.Objects.isNull;
-
-public class ItemMapper {
+public class ItemMapper extends AbstractMapper {
     public static ItemDto toItemDto(Item item) {
         return ItemDto.builder()
                 .id(item.getId())
@@ -42,23 +41,5 @@ public class ItemMapper {
                 .description(getChanged(item.getDescription(), itemWithChanges.getDescription()))
                 .isAvailable(getChanged(item.isAvailable(), itemWithChanges.getIsAvailable()))
                 .build();
-    }
-
-    // ToDo
-    // Вынести эти два метода в какой-то класс прородитель?
-    public static <T> T getChanged(T original, T changed, boolean changedNullable) {
-        if (isNull(changed) && !changedNullable) {
-            return original;
-        }
-
-        if (isNull(original) || !original.equals(changed)) {
-            return changed;
-        }
-
-        return original;
-    }
-
-    public static <T> T getChanged(T original, T changed) {
-        return getChanged(original, changed, false);
     }
 }

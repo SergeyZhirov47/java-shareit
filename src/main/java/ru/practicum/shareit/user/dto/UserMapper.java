@@ -1,10 +1,9 @@
 package ru.practicum.shareit.user.dto;
 
+import ru.practicum.shareit.common.AbstractMapper;
 import ru.practicum.shareit.user.model.User;
 
-import static java.util.Objects.isNull;
-
-public class UserMapper {
+public class UserMapper extends AbstractMapper {
     public static UserDto toUserDto(User user) {
         return UserDto.builder()
                 .id(user.getId())
@@ -34,21 +33,5 @@ public class UserMapper {
                 .email(getChanged(user.getEmail(), userWithChanges.getEmail()))
                 .name(getChanged(user.getName(), userWithChanges.getName()))
                 .build();
-    }
-
-    public static <T> T getChanged(T original, T changed, boolean changedNullable) {
-        if (isNull(changed) && !changedNullable) {
-            return original;
-        }
-
-        if (isNull(original) || !original.equals(changed)) {
-            return changed;
-        }
-
-        return original;
-    }
-
-    public static <T> T getChanged(T original, T changed) {
-        return getChanged(original, changed, false);
     }
 }
