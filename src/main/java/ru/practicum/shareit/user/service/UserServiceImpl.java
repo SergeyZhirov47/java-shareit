@@ -2,11 +2,11 @@ package ru.practicum.shareit.user.service;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.common.NotFoundException;
-import ru.practicum.shareit.user.exception.EmailAlreadyUsedException;
 import ru.practicum.shareit.user.dto.UserCreateDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
+import ru.practicum.shareit.user.exception.EmailAlreadyUsedException;
+import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -75,9 +75,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(long id) {
-        // ToDo
-        // что будет со всеми вещами пользователя?
-        // Запретить удалять, если остались вещи в пользовании?
+        // Потом наверное будут нужны доп. проверки.
+        // Нельзя удалять пользователя, у которого есть вещи. Ну вещи есть, но они не используются.
         userRepository.delete(id);
     }
 
@@ -91,19 +90,13 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private User getUserById(Long id) {
+    private User getUserById(long id) {
         final Optional<User> userOpt = userRepository.findById(id);
 
         if (userOpt.isEmpty()) {
-            throwNotFoundExceptionForUser(id);
+            throw new UserNotFoundException(id);
         }
 
         return userOpt.get();
-    }
-
-    // ToDo
-    // Вынести в отдельное исключение?
-    private void throwNotFoundExceptionForUser(Long id) {
-        throw new NotFoundException(String.format("Пользователь с id = %s не найден", id));
     }
 }
