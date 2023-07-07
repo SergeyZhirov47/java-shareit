@@ -7,13 +7,14 @@ import ru.practicum.shareit.user.model.User;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
 public class UserRepositoryImpl implements UserRepository {
-    private final HashMap<Long, User> users;
+    private final Map<Long, User> users = new HashMap<>();
     private final IdGenerator idGenerator = new IdGenerator(0L);
 
     @Override

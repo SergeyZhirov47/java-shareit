@@ -1,7 +1,7 @@
 package ru.practicum.shareit.user.service;
 
 import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import ru.practicum.shareit.common.NotFoundException;
 import ru.practicum.shareit.user.EmailAlreadyUsedException;
 import ru.practicum.shareit.user.dto.UserCreateDto;
@@ -16,13 +16,13 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
 
-@Component
+@Service
 @AllArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDto getById(Long id) {
+    public UserDto getById(long id) {
         return UserMapper.toUserDto(getUserById(id));
     }
 
@@ -48,8 +48,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto update(Long id, UserDto userDto) {
-        // Проверка, что пользователь есть.
+    public UserDto update(long id, UserDto userDto) {
+        // Получение и проверка, что пользователь есть.
         final User user = getUserById(id);
 
         // Формируем пользователя с измененными полями.
@@ -74,7 +74,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(long id) {
         // ToDo
         // что будет со всеми вещами пользователя?
         // Запретить удалять, если остались вещи в пользовании?
@@ -101,6 +101,8 @@ public class UserServiceImpl implements UserService {
         return userOpt.get();
     }
 
+    // ToDo
+    // Вынести в отдельное исключение?
     private void throwNotFoundExceptionForUser(Long id) {
         throw new NotFoundException(String.format("Пользователь с id = %s не найден", id));
     }

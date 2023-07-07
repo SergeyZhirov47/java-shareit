@@ -31,7 +31,7 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public UserDto update(@Valid @RequestBody UserDto user, @NotNull @PathVariable(name = "id") Long id) {
+    public UserDto update(@Valid @RequestBody UserDto user, @PathVariable(name = "id") long id) {
         log.info(String.format("PATCH /users/{id}, {id} = %s", id));
         final UserDto updatedUser = userService.update(id, user);
         log.info(String.format("Успешно обновлены данные пользователя с id = %s", updatedUser.getId()));
@@ -40,7 +40,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public UserDto getById(@NotNull @PathVariable(name = "id") Long id) {
+    public UserDto getById(@PathVariable(name = "id") long id) {
         log.info(String.format("GET /users/{id}, {id} = %s", id));
         final UserDto user = userService.getById(id);
         log.info(String.format("Успешно получены данные пользователя с id = %s", user.getId()));
@@ -58,7 +58,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteById(@NotNull @PathVariable(name = "id") Long id) {
+    public void deleteById(@PathVariable(name = "id") long id) {
         log.info(String.format("DELETE /users/{id}, {id} = %s", id));
         userService.delete(id);
         log.info(String.format("Успешно удален пользователь с id = %s", id));
