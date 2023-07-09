@@ -12,22 +12,19 @@ import java.util.stream.Collectors;
 @Component
 @AllArgsConstructor
 public class ItemRepositoryImpl implements ItemRepository {
+    // Вещи по владельцу.
     // Ключ - id владельца.
     // Значение - мапа его вещей.
     private final Map<Long, Map<Long, Item>> itemsByOwner = new HashMap<>();
+    // Все вещи.
+    // Ключ - id вещи.
+    // Значение - вещь.
+    private final Map<Long, Item> allItems = new HashMap<>();
     private final IdGenerator idGenerator = new IdGenerator(0L);
 
     @Override
     public Optional<Item> getById(long id) {
-        for (final Map.Entry<Long, Map<Long, Item>> entry : itemsByOwner.entrySet()) {
-            final Map<Long, Item> ownerItems = entry.getValue();
-
-            if (ownerItems.containsKey(id)) {
-                return Optional.of(ownerItems.get(id));
-            }
-        }
-
-        return Optional.empty();
+        return Optional.ofNullable(allItems.get(id));
     }
 
     @Override
@@ -58,6 +55,7 @@ public class ItemRepositoryImpl implements ItemRepository {
         final Map<Long, Item> ownerItems = itemsByOwner.getOrDefault(ownerId, new HashMap<>());
         ownerItems.put(itemId, item);
         itemsByOwner.put(ownerId, ownerItems);
+        allItems.put(itemId, item);
 
         return itemId;
     }
@@ -65,7 +63,10 @@ public class ItemRepositoryImpl implements ItemRepository {
     @Override
     public Item update(Item item, long ownerId) {
         if (itemsByOwner.containsKey(ownerId)) {
-            itemsByOwner.get(ownerId).put(item.getId(), item);
+            final Long itemId = item.getId();
+
+            itemsByOwner.get(ownerId).put(itemId, item);
+            allItems.put(itemId, item);
         }
 
         return item;
@@ -76,8 +77,7 @@ public class ItemRepositoryImpl implements ItemRepository {
         final Predicate<Item> containsInNameOrDescriptionPredicate = (item -> item.getName().toLowerCase().contains(text)
                 || item.getDescription().toLowerCase().contains(text));
 
-        final List<Item> searchResult = itemsByOwner.values().stream()
-                .flatMap(x -> x.values().stream())
+        final List<Item> searchResult = allItems.values().stream()
                 .filter(Item::isAvailable)
                 .filter(containsInNameOrDescriptionPredicate)
                 .collect(Collectors.toUnmodifiableList());
@@ -87,7 +87,7 @@ public class ItemRepositoryImpl implements ItemRepository {
 
     @Override
     public boolean contains(long id) {
-        return itemsByOwner.values().stream().anyMatch(x -> x.containsKey(id));
+        return allItems.containsKey(id);
     }
 
     @Override
