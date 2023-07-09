@@ -66,7 +66,7 @@ public class ItemController {
     // Пользователь передаёт в строке запроса текст, и система ищет вещи, содержащие этот текст в названии или описании
     @GetMapping("/search")
     public List<ItemDto> searchItems(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
-                                     @NotBlank @RequestParam(name = "text") String text) {
+                                     @Valid @NotBlank @RequestParam(name = "text") String text) {
         log.info(String.format("GET /items/search?text=text, text = %s, %s = %s", text, USER_ID_REQUEST_HEADER, userId));
         final List<ItemDto> searchedItems = itemService.searchItems(text, userId);
         log.info(String.format("Успешно получены вещи (%s штук) по запросу \"%s\" пользователя с id = %s", searchedItems.size(), text, userId));
