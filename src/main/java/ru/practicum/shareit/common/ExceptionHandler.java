@@ -28,6 +28,14 @@ public class ExceptionHandler {
         return simpleHandle(exp);
     }
 
+    @org.springframework.web.bind.annotation.ExceptionHandler(Throwable.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponseData handle(Throwable exp) {
+        log.error("internal server error", exp);
+
+        return new ErrorResponseData(exp.getMessage());
+    }
+
     private ErrorResponseData simpleHandle(RuntimeException exp) {
         log.warn(exp.getMessage(), exp);
         return new ErrorResponseData(exp.getMessage());
