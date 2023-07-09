@@ -5,17 +5,17 @@ import org.springframework.stereotype.Component;
 import ru.practicum.shareit.common.IdGenerator;
 import ru.practicum.shareit.user.model.User;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.Objects.isNull;
 
 @Component
 @AllArgsConstructor
 public class UserRepositoryImpl implements UserRepository {
     private final Map<Long, User> users = new HashMap<>();
     private final IdGenerator idGenerator = new IdGenerator(0L);
+    private final Set<String> userEmails = new HashSet<>();
 
     @Override
     public Optional<User> findById(Long id) {
@@ -32,6 +32,7 @@ public class UserRepositoryImpl implements UserRepository {
         final Long newId = idGenerator.getNext();
         user.setId(newId);
         users.put(newId, user);
+        userEmails.add(user.getEmail());
 
         return newId;
     }
@@ -39,12 +40,24 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public User update(User user) {
         final Long userId = user.getId();
+
+        final User oldUser = users.get(userId);
+        userEmails.remove(oldUser.getEmail());
+
         users.put(userId, user);
+        userEmails.add(user.getEmail());
+
         return users.get(userId);
     }
 
     @Override
     public void delete(Long id) {
+        final User user = users.get(id);
+        if (isNull(user)) {
+            return;
+        }
+
+        userEmails.remove(user.getEmail());
         users.remove(id);
     }
 
@@ -55,6 +68,6 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public boolean containsByEmail(String email) {
-        return users.values().stream().anyMatch(u -> u.getEmail().equals(email));
+        return userEmails.contains(email);
     }
 }
