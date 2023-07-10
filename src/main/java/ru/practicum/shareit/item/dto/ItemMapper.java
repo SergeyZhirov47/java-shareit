@@ -1,11 +1,13 @@
 package ru.practicum.shareit.item.dto;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.shareit.common.AbstractMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
+@UtilityClass
 public class ItemMapper extends AbstractMapper {
-    public static ItemDto toItemDto(Item item) {
+    public ItemDto toItemDto(Item item) {
         return ItemDto.builder()
                 .id(item.getId())
                 .name(item.getName())
@@ -14,7 +16,7 @@ public class ItemMapper extends AbstractMapper {
                 .build();
     }
 
-    public static Item toItem(ItemDto itemDto, User owner) {
+    public Item toItem(ItemDto itemDto, User owner) {
         return Item.builder()
                 .id(itemDto.getId())
                 .name(itemDto.getName())
@@ -24,7 +26,7 @@ public class ItemMapper extends AbstractMapper {
                 .build();
     }
 
-    public static Item toItem(ItemCreateDto itemDto, User owner) {
+    public Item toItem(ItemCreateDto itemDto, User owner) {
         return Item.builder()
                 .name(itemDto.getName())
                 .description(itemDto.getDescription())
@@ -33,7 +35,7 @@ public class ItemMapper extends AbstractMapper {
                 .build();
     }
 
-    public static Item updateIfDifferent(final Item item, final ItemDto itemWithChanges) {
+    public Item updateIfDifferent(final Item item, final ItemDto itemWithChanges) {
         return Item.builder()
                 .id(item.getId())
                 .owner(item.getOwner())

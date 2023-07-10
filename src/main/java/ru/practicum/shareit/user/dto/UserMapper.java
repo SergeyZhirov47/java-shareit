@@ -1,10 +1,12 @@
 package ru.practicum.shareit.user.dto;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.shareit.common.AbstractMapper;
 import ru.practicum.shareit.user.model.User;
 
+@UtilityClass
 public class UserMapper extends AbstractMapper {
-    public static UserDto toUserDto(User user) {
+    public UserDto toUserDto(User user) {
         return UserDto.builder()
                 .id(user.getId())
                 .name(user.getName())
@@ -12,7 +14,7 @@ public class UserMapper extends AbstractMapper {
                 .build();
     }
 
-    public static User toUser(UserDto userDto) {
+    public User toUser(UserDto userDto) {
         return User.builder()
                 .id(userDto.getId())
                 .email(userDto.getEmail())
@@ -20,14 +22,14 @@ public class UserMapper extends AbstractMapper {
                 .build();
     }
 
-    public static User toUser(UserCreateDto userDto) {
+    public User toUser(UserCreateDto userDto) {
         return User.builder()
                 .email(userDto.getEmail())
                 .name(userDto.getName())
                 .build();
     }
 
-    public static User updateIfDifferent(final User user, final UserDto userWithChanges) {
+    public User updateIfDifferent(final User user, final UserDto userWithChanges) {
         return User.builder()
                 .id(user.getId())
                 .email(getChanged(user.getEmail(), userWithChanges.getEmail()))
