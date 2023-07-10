@@ -52,7 +52,7 @@ public class ItemServiceImpl implements ItemService {
 
         // Обновление
         final Optional<Item> itemOpt = itemRepository.getByIdAndOwnerId(id, ownerId);
-        final Item itemFromRepo = unpackItem(itemOpt, id);
+        final Item itemFromRepo = itemOpt.orElseThrow(() -> new ItemNotFoundException(id));
 
         final Item changedItem = ItemMapper.updateIfDifferent(itemFromRepo, item);
 
@@ -69,7 +69,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto getById(long id) {
         final Optional<Item> itemOpt = itemRepository.getById(id);
-        final Item item = unpackItem(itemOpt, id);
+        final Item item = itemOpt.orElseThrow(() -> new ItemNotFoundException(id));
 
         return ItemMapper.toItemDto(item);
     }
@@ -80,7 +80,7 @@ public class ItemServiceImpl implements ItemService {
         checkUserExists(ownerId);
 
         final Optional<Item> itemOpt = itemRepository.getByIdAndOwnerId(itemId, ownerId);
-        final Item item = unpackItem(itemOpt, itemId);
+        final Item item = itemOpt.orElseThrow(() -> new ItemNotFoundException(itemId));
 
         return ItemMapper.toItemDto(item);
     }
@@ -103,14 +103,6 @@ public class ItemServiceImpl implements ItemService {
         }
 
         return searchResult.stream().map(ItemMapper::toItemDto).collect(toUnmodifiableList());
-    }
-
-    private Item unpackItem(Optional<Item> itemOpt, long id) {
-        if (itemOpt.isEmpty()) {
-            throw new ItemNotFoundException(id);
-        }
-
-        return itemOpt.get();
     }
 
     private void checkUserOwnItem(long userId, long itemId) {
