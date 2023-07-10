@@ -14,8 +14,8 @@ import static java.util.Objects.isNull;
 @AllArgsConstructor
 public class UserRepositoryImpl implements UserRepository {
     private final Map<Long, User> users = new HashMap<>();
-    private final IdGenerator idGenerator = new IdGenerator(0L);
     private final Set<String> userEmails = new HashSet<>();
+    private final IdGenerator idGenerator = new IdGenerator(0L);
 
     @Override
     public Optional<User> findById(Long id) {
