@@ -8,7 +8,6 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 @RestController
@@ -66,7 +65,7 @@ public class ItemController {
     // Пользователь передаёт в строке запроса текст, и система ищет вещи, содержащие этот текст в названии или описании
     @GetMapping("/search")
     public List<ItemDto> searchItems(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
-                                     @Valid @NotBlank @RequestParam(name = "text") String text) {
+                                     @RequestParam(name = "text") String text) {
         log.info(String.format("GET /items/search?text=text, text = %s, %s = %s", text, USER_ID_REQUEST_HEADER, userId));
         final List<ItemDto> searchedItems = itemService.searchItems(text, userId);
         log.info(String.format("Успешно получены вещи (%s штук) по запросу \"%s\" пользователя с id = %s", searchedItems.size(), text, userId));
