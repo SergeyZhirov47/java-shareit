@@ -47,7 +47,7 @@ public class UserRepositoryImpl implements UserRepository {
         users.put(userId, user);
         userEmails.add(user.getEmail());
 
-        return users.get(userId);
+        return user;
     }
 
     @Override
