@@ -34,8 +34,10 @@ public class ItemServiceImpl implements ItemService {
         }
 
         final User owner = ownerOpt.get();
-        final Item itemEntity = ItemMapper.toItem(item, owner);
-        return itemRepository.add(itemEntity, owner.getId());
+        Item itemEntity = ItemMapper.toItem(item, owner);
+        itemEntity = itemRepository.save(itemEntity);
+
+        return itemEntity.getId();
     }
 
     @Override
@@ -51,7 +53,7 @@ public class ItemServiceImpl implements ItemService {
         checkUserOwnItem(ownerId, id);
 
         // Обновление
-        final Optional<Item> itemOpt = itemRepository.getByIdAndOwnerId(id, ownerId);
+        final Optional<Item> itemOpt = itemRepository.findByIdAndOwnerId(id, ownerId);
         final Item itemFromRepo = itemOpt.orElseThrow(() -> new ItemNotFoundException(id));
 
         final Item changedItem = ItemMapper.updateIfDifferent(itemFromRepo, item);
@@ -60,7 +62,7 @@ public class ItemServiceImpl implements ItemService {
         if (itemFromRepo.equals(changedItem)) {
             updatedItem = changedItem;
         } else {
-            updatedItem = itemRepository.update(changedItem, ownerId);
+            updatedItem = itemRepository.save(changedItem);
         }
 
         return ItemMapper.toItemDto(updatedItem);
@@ -68,7 +70,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto getById(long id) {
-        final Optional<Item> itemOpt = itemRepository.getById(id);
+        final Optional<Item> itemOpt = itemRepository.findById(id);
         final Item item = itemOpt.orElseThrow(() -> new ItemNotFoundException(id));
 
         return ItemMapper.toItemDto(item);
@@ -79,7 +81,7 @@ public class ItemServiceImpl implements ItemService {
         checkItemExists(itemId);
         checkUserExists(ownerId);
 
-        final Optional<Item> itemOpt = itemRepository.getByIdAndOwnerId(itemId, ownerId);
+        final Optional<Item> itemOpt = itemRepository.findByIdAndOwnerId(itemId, ownerId);
         final Item item = itemOpt.orElseThrow(() -> new ItemNotFoundException(itemId));
 
         return ItemMapper.toItemDto(item);
@@ -89,7 +91,7 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemDto> getAllOwnerItems(long ownerId) {
         checkUserExists(ownerId);
 
-        final List<Item> ownerItems = itemRepository.getOwnerItems(ownerId);
+        final List<Item> ownerItems = itemRepository.findByOwnerId(ownerId);
         return ownerItems.stream().map(ItemMapper::toItemDto).collect(toUnmodifiableList());
     }
 
@@ -99,14 +101,15 @@ public class ItemServiceImpl implements ItemService {
 
         List<Item> searchResult = new ArrayList<>();
         if (!searchText.isEmpty()) {
-            searchResult = itemRepository.search(searchText, userId);
+           // searchResult = itemRepository.search(searchText, userId);
+            searchResult = itemRepository.findAvailableByNameOrDescription(searchText); // AndIsAvailableIsTrue
         }
 
         return searchResult.stream().map(ItemMapper::toItemDto).collect(toUnmodifiableList());
     }
 
     private void checkUserOwnItem(long userId, long itemId) {
-        if (!itemRepository.checkUserOwnItem(userId, itemId)) {
+        if (!itemRepository.existsByIdAndOwnerId(userId, itemId)) {
             throw new NotOwnerAccessException(String.format("Вещь с id = %s не принадлежит пользователю с id = %s", itemId, userId));
         }
     }
@@ -118,7 +121,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void checkItemExists(long itemId) {
-        if (!itemRepository.contains(itemId)) {
+        if (!itemRepository.existsById(itemId)) {
             throw new ItemNotFoundException(itemId);
         }
     }
