@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDto> getAll() {
-        final List<User> users = userRepository.getAll();
+        final List<User> users = userRepository.findAll();
         return users.stream().map(UserMapper::toUserDto).collect(Collectors.toUnmodifiableList());
     }
 
@@ -37,8 +37,10 @@ public class UserServiceImpl implements UserService {
         // Проверка, что еще нет пользователя с таким email.
         checkExistsUserEmail(userDto.getEmail());
 
-        final User user = UserMapper.toUser(userDto);
-        return userRepository.create(user);
+        User user = UserMapper.toUser(userDto);
+        user = userRepository.save(user);
+
+        return user.getId();
     }
 
     @Override
@@ -67,7 +69,7 @@ public class UserServiceImpl implements UserService {
                 checkExistsUserEmail(newEmail);
             }
 
-            updatedUser = userRepository.update(changedUser);
+            updatedUser = userRepository.save(changedUser);
         }
 
         return UserMapper.toUserDto(updatedUser);
@@ -77,7 +79,7 @@ public class UserServiceImpl implements UserService {
     public void delete(long id) {
         // Потом наверное будут нужны доп. проверки.
         // Нельзя удалять пользователя, у которого есть вещи. Ну вещи есть, но они не используются.
-        userRepository.delete(id);
+        userRepository.deleteById(id);
     }
 
     private boolean checkNotBlankEmail(final String email) {
@@ -85,7 +87,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private void checkExistsUserEmail(final String email) {
-        if (userRepository.containsByEmail(email)) {
+        if (userRepository.existsByEmail(email)) {
             throw new EmailAlreadyUsedException(String.format("Пользователь с email = %s уже существует!", email));
         }
     }

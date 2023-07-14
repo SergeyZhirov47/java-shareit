@@ -112,7 +112,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void checkUserExists(long userId) {
-        if (!userRepository.containsById(userId)) {
+        if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException(userId);
         }
     }
