@@ -101,8 +101,7 @@ public class ItemServiceImpl implements ItemService {
 
         List<Item> searchResult = new ArrayList<>();
         if (!searchText.isEmpty()) {
-           // searchResult = itemRepository.search(searchText, userId);
-            searchResult = itemRepository.findAvailableByNameOrDescription(searchText); // AndIsAvailableIsTrue
+            searchResult = itemRepository.findAvailableByNameOrDescription(searchText);
         }
 
         return searchResult.stream().map(ItemMapper::toItemDto).collect(toUnmodifiableList());
