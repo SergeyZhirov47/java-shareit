@@ -32,4 +32,4 @@ build/
 ### VS Code ###
 .vscode/
 
-/db/shareit.mv.db
+/db
