@@ -93,6 +93,27 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingDto(booking);
     }
 
+    // Получение данных о конкретном бронировании (включая его статус).
+    // Может быть выполнено либо автором бронирования, либо владельцем вещи, к которой относится бронирование.
+    @Override
+    public BookingDto getBooking(long id, long userId) {
+        // Проверяем есть ли заявка на бронирование.
+        final Booking booking = getBooking(id);
+
+        // ToDo
+        // по идее можно объединить в один запрос...
+
+        // Проверяем есть ли доступ (запросил автор или владелец).
+        final boolean isUserOwnItem = bookingRepository.isUserOwnItemFromBooking(id, userId);
+        final boolean isUserAuthorBooking = bookingRepository.isUserBookingAuthor(id, userId);
+        if (!isUserOwnItem || !isUserAuthorBooking) {
+            throw new UnsupportedOperationException(String.format("Данные о бронировании может запросить либо владелец вещи либо автор бронирования. Пользователь id = %s не подходит под эти требования", userId));
+        }
+
+        return BookingMapper.toBookingDto(booking);
+    }
+
+
     // ToDo
     // где эта логика должна быть? В моделе? тогда как dto получат к ней доступ?
     // в сервисе? тогда в моделе вообще какая-то логика может быть?

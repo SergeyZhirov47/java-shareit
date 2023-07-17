@@ -49,30 +49,39 @@ public class BookingController {
         return bookingDto;
     }
 
-    //    Получение данных о конкретном бронировании (включая его статус). Может быть выполнено либо автором бронирования, либо владельцем вещи, к которой относится бронирование.
+    // Получение данных о конкретном бронировании (включая его статус).
     @GetMapping("/{bookingId}")
     public BookingDto getBooking(@RequestHeader(USER_ID_REQUEST_HEADER) long userId, @PathVariable(name = "bookingId") long bookingId) {
-        return null;
+        log.info(String.format("GET /bookings/{bookingId}, {bookingId} = %s, %s = %s", bookingId, USER_ID_REQUEST_HEADER, userId));
+        final BookingDto bookingDto = bookingService.getBooking(bookingId, userId);
+        log.info("Данные о бронировании успешно получены");
+
+        return bookingDto;
     }
 
     // ToDo
     // тут state (статус) интересный.
     // Некоторые состояния от BookingStatus, а другие свои.
 
-    //    Получение списка всех бронирований текущего пользователя.
+    //    Получение списка всех бронирований текущего пользователя (т.е список всех заявок на бронирование созданных данным пользователем).
     //    Эндпоинт — GET /bookings?state={state}. Параметр state необязательный и по умолчанию равен ALL (англ. «все»).
-    //    Также он может принимать значения CURRENT (англ. «текущие»), **PAST** (англ. «завершённые»), FUTURE (англ. «будущие»), WAITING (англ. «ожидающие подтверждения»), REJECTED (англ. «отклонённые»). Б
-    //    ронирования должны возвращаться отсортированными по дате от более новых к более старым.
+    //    Также он может принимать значения CURRENT (англ. «текущие»), **PAST** (англ. «завершённые»), FUTURE (англ. «будущие»),
+    //    WAITING (англ. «ожидающие подтверждения»), REJECTED (англ. «отклонённые»).
+    //    Бронирования должны возвращаться отсортированными по дате от более новых к более старым.
     @GetMapping
-    public List<BookingDto> getBookingByState(@RequestParam(name = "state", defaultValue = "ALL") BookingStateForSearch state) {
+    public List<BookingDto> getUserBookingsByState(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
+                                              @RequestParam(name = "state", defaultValue = "ALL") BookingStateForSearch state) {
+        log.info(String.format("GET /bookings?state={state}, {state} = %s, %s = %s", state, USER_ID_REQUEST_HEADER, userId));
         return null;
     }
 
-    //    Получение списка бронирований для всех вещей текущего пользователя.
-    //    Эндпоинт — GET /bookings/owner?state={state}. Этот запрос имеет смысл для владельца хотя бы одной вещи. Работа параметра state аналогична его работе в предыдущем сценарии.
+    //    Получение списка бронирований для всех вещей текущего пользователя. (т.е все заявки на бронирование вещей данного пользователя.)
+    //    Эндпоинт — GET /bookings/owner?state={state}. Этот запрос имеет смысл для владельца хотя бы одной вещи.
+    //    Работа параметра state аналогична его работе в предыдущем сценарии.
     @GetMapping("/owner")
-    public List<BookingDto> getOwnerBookingsByState(@RequestHeader(USER_ID_REQUEST_HEADER) long ownerId,
-                                                    @RequestParam(name = "state", defaultValue = "All") BookingStateForSearch state) {
+    public List<BookingDto> getBookingItemsByOwner(@RequestHeader(USER_ID_REQUEST_HEADER) long ownerId,
+                                                   @RequestParam(name = "state", defaultValue = "All") BookingStateForSearch state) {
+        log.info(String.format("GET /bookings/owner?state={state}, {state} = %s, %s = %s", state, USER_ID_REQUEST_HEADER, ownerId));
 
         return null;
     }
