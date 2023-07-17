@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 
+import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
@@ -18,7 +19,9 @@ public class BookingCreateDto {
     @NotNull
     private long itemId;
     @NotNull
+    @FutureOrPresent
     private LocalDateTime start;
     @NotNull
+    @FutureOrPresent
     private LocalDateTime end;
 }
