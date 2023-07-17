@@ -21,7 +21,7 @@ import java.util.List;
 @Slf4j
 public class BookingController {
     // ToDo!
-    // Такой же используется и в ItemController
+    // Такой же USER_ID_REQUEST_HEADER  используется и в ItemController
     // вынести в отдельное место
     private static final String USER_ID_REQUEST_HEADER = "X-Sharer-User-Id";
     private final BookingService bookingService;
@@ -33,8 +33,10 @@ public class BookingController {
     @PostMapping
     public BookingDto create(@RequestHeader(USER_ID_REQUEST_HEADER) long userId, @RequestBody BookingCreateDto newBooking) {
         log.info(String.format("POST /bookings, body = %s, %s = %s", newBooking, USER_ID_REQUEST_HEADER, userId));
-       // bookingService.
-        return null;
+        final BookingDto bookingDto = bookingService.create(newBooking, userId);
+        log.info(String.format("Успешно создана заявка на бронирование предмета с id = %s от пользователя с id = %s", newBooking.getItemId(), userId));
+
+        return bookingDto;
     }
 
     //    Подтверждение или отклонение запроса на бронирование. Может быть выполнено только владельцем вещи.
