@@ -108,7 +108,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void checkUserOwnItem(long userId, long itemId) {
-        if (!itemRepository.existsByIdAndOwnerId(userId, itemId)) {
+        if (!itemRepository.existsByIdAndOwnerId(itemId, userId)) {
             throw new NotOwnerAccessException(String.format("Вещь с id = %s не принадлежит пользователю с id = %s", itemId, userId));
         }
     }
