@@ -23,15 +23,4 @@ public class BookingMapper extends AbstractMapper {
                 .end(bookingCreateDto.getEnd())
                 .build();
     }
-
-    public Booking updateIfDifferent(final Booking booking, final BookingDto bookingWithChanges) {
-        return Booking.builder()
-                .id(booking.getId())
-                .item(booking.getItem())
-                .booker(booking.getBooker())
-                .start(getChanged(booking.getStart(), bookingWithChanges.getStart()))
-                .end(getChanged(booking.getEnd(), bookingWithChanges.getEnd()))
-                .status(getChanged(booking.getStatus(), bookingWithChanges.getStatus()))
-                .build();
-    }
 }
