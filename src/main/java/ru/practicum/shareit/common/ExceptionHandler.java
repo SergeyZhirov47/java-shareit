@@ -32,6 +32,20 @@ public class ExceptionHandler {
         return simpleHandle(exp);
     }
 
+    // ToDo
+    // Оставить или заменить на другое исключение
+    @org.springframework.web.bind.annotation.ExceptionHandler(UnsupportedOperationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponseData handle(UnsupportedOperationException exp) {
+        return simpleHandle(exp);
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(ValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponseData handle(ValidationException exp) {
+        return simpleHandle(exp);
+    }
+
     @org.springframework.web.bind.annotation.ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handle(MethodArgumentNotValidException exp) {
