@@ -35,11 +35,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Long create(UserCreateDto userDto) {
-        // Проверка, что еще нет пользователя с таким email.
-        // checkExistsUserEmail(userDto.getEmail());
-
         User user = UserMapper.toUser(userDto);
 
+        // По тестам postman получается, что теперь БД будет "проверять" уникальность email.
         try {
             user = userRepository.save(user);
         }
