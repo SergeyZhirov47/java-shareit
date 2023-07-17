@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.BookingStateForSearch;
+import ru.practicum.shareit.booking.service.BookingService;
 
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class BookingController {
     // Такой же используется и в ItemController
     // вынести в отдельное место
     private static final String USER_ID_REQUEST_HEADER = "X-Sharer-User-Id";
+    private final BookingService bookingService;
 
     //    Добавление нового запроса на бронирование.
     //    Запрос может быть создан любым пользователем, а затем подтверждён владельцем вещи.
@@ -30,6 +32,8 @@ public class BookingController {
     // @Valid
     @PostMapping
     public BookingDto create(@RequestHeader(USER_ID_REQUEST_HEADER) long userId, @RequestBody BookingCreateDto newBooking) {
+        log.info(String.format("POST /bookings, body = %s, %s = %s", newBooking, USER_ID_REQUEST_HEADER, userId));
+       // bookingService.
         return null;
     }
 

@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user.service;
 
 import lombok.AllArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.user.dto.UserCreateDto;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -35,10 +36,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public Long create(UserCreateDto userDto) {
         // Проверка, что еще нет пользователя с таким email.
-        checkExistsUserEmail(userDto.getEmail());
+        // checkExistsUserEmail(userDto.getEmail());
 
         User user = UserMapper.toUser(userDto);
-        user = userRepository.save(user);
+
+        try {
+            user = userRepository.save(user);
+        }
+        catch (DataIntegrityViolationException exp) {
+            throw new EmailAlreadyUsedException(String.format("Пользователь с email = %s уже существует!", user.getEmail()));
+        }
 
         return user.getId();
     }
