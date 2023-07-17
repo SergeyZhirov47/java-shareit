@@ -9,6 +9,7 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.BookingStateForSearch;
 import ru.practicum.shareit.booking.service.BookingService;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -26,12 +27,9 @@ public class BookingController {
     private static final String USER_ID_REQUEST_HEADER = "X-Sharer-User-Id";
     private final BookingService bookingService;
 
-    //    Добавление нового запроса на бронирование.
-    //    Запрос может быть создан любым пользователем, а затем подтверждён владельцем вещи.
-    //    Эндпоинт — POST /bookings. После создания запрос находится в статусе WAITING — «ожидает подтверждения».
-    // @Valid
+    // Добавление нового запроса на бронирование.
     @PostMapping
-    public BookingDto create(@RequestHeader(USER_ID_REQUEST_HEADER) long userId, @RequestBody BookingCreateDto newBooking) {
+    public BookingDto create(@RequestHeader(USER_ID_REQUEST_HEADER) long userId, @Valid @RequestBody BookingCreateDto newBooking) {
         log.info(String.format("POST /bookings, body = %s, %s = %s", newBooking, USER_ID_REQUEST_HEADER, userId));
         final BookingDto bookingDto = bookingService.create(newBooking, userId);
         log.info(String.format("Успешно создана заявка на бронирование предмета с id = %s от пользователя с id = %s", newBooking.getItemId(), userId));
@@ -39,20 +37,21 @@ public class BookingController {
         return bookingDto;
     }
 
-    //    Подтверждение или отклонение запроса на бронирование. Может быть выполнено только владельцем вещи.
-    //    Затем статус бронирования становится либо APPROVED, либо REJECTED.
-    //    Эндпоинт — PATCH /bookings/{bookingId}?approved={approved}, параметр approved может принимать значения true или false.
+    // Подтверждение или отклонение запроса на бронирование.
     @PatchMapping("/{bookingId}")
-    public BookingDto approveBooking(@RequestHeader(USER_ID_REQUEST_HEADER) long ownerId,
-                                     @RequestPart(name = "bookingId") long bookingId,
+    public BookingDto approveBooking(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
+                                     @PathVariable(name = "bookingId") long bookingId,
                                      @RequestParam(name = "approved") boolean approved) {
-        return null;
+        log.info(String.format("PATCH /bookings/{bookingId}?approved={approved}, {bookingId} = %s, %s = %s, {approved} = %s", bookingId, USER_ID_REQUEST_HEADER, userId, approved));
+        final BookingDto bookingDto = bookingService.approve(bookingId, userId, approved);
+        log.info(String.format("Владелец вещи изменил статус запроса бронирования на %s", bookingDto.getStatus()));
+
+        return bookingDto;
     }
 
     //    Получение данных о конкретном бронировании (включая его статус). Может быть выполнено либо автором бронирования, либо владельцем вещи, к которой относится бронирование.
-    //    Эндпоинт — GET /bookings/{bookingId}.
     @GetMapping("/{bookingId}")
-    public BookingDto getBooking(@RequestHeader(USER_ID_REQUEST_HEADER) long userId, @RequestPart(name = "bookingId") long bookingId) {
+    public BookingDto getBooking(@RequestHeader(USER_ID_REQUEST_HEADER) long userId, @PathVariable(name = "bookingId") long bookingId) {
         return null;
     }
 
@@ -72,7 +71,9 @@ public class BookingController {
     //    Получение списка бронирований для всех вещей текущего пользователя.
     //    Эндпоинт — GET /bookings/owner?state={state}. Этот запрос имеет смысл для владельца хотя бы одной вещи. Работа параметра state аналогична его работе в предыдущем сценарии.
     @GetMapping("/owner")
-    public List<BookingDto> getOwnerBookingsByState(@RequestHeader(USER_ID_REQUEST_HEADER) long ownerId, @RequestParam(name = "state", defaultValue = "ALL") BookingStateForSearch state) {
+    public List<BookingDto> getOwnerBookingsByState(@RequestHeader(USER_ID_REQUEST_HEADER) long ownerId,
+                                                    @RequestParam(name = "state", defaultValue = "All") BookingStateForSearch state) {
+
         return null;
     }
 }
