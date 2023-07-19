@@ -8,9 +8,12 @@ import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.BookingStateForSearch;
 import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.common.ValidationException;
 
 import javax.validation.Valid;
 import java.util.List;
+
+import static java.util.Objects.isNull;
 
 /**
  * TODO Sprint add-bookings.
@@ -59,30 +62,60 @@ public class BookingController {
         return bookingDto;
     }
 
-    // ToDo
-    // тут state (статус) интересный.
-    // Некоторые состояния от BookingStatus, а другие свои.
-
     //    Получение списка всех бронирований текущего пользователя (т.е список всех заявок на бронирование созданных данным пользователем).
-    //    Эндпоинт — GET /bookings?state={state}. Параметр state необязательный и по умолчанию равен ALL (англ. «все»).
-    //    Также он может принимать значения CURRENT (англ. «текущие»), **PAST** (англ. «завершённые»), FUTURE (англ. «будущие»),
-    //    WAITING (англ. «ожидающие подтверждения»), REJECTED (англ. «отклонённые»).
     //    Бронирования должны возвращаться отсортированными по дате от более новых к более старым.
     @GetMapping
     public List<BookingDto> getUserBookingsByState(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
-                                              @RequestParam(name = "state", defaultValue = "ALL") BookingStateForSearch state) {
-        log.info(String.format("GET /bookings?state={state}, {state} = %s, %s = %s", state, USER_ID_REQUEST_HEADER, userId));
-        return null;
+                                                   @RequestParam(name = "state", required = false) String stateStr) {
+        log.info(String.format("GET /bookings?state={state}, {state} = %s, %s = %s", stateStr, USER_ID_REQUEST_HEADER, userId));
+
+        // ToDo
+        // этот код валидации нужно куда-то пристроить...
+        // - в само enum... Дефолтное значение наверное разве, что передавать (а то с фига он знает, что по дефолту). Хотя ALL. Даже не знаю
+        // - в сервис? с одной стороны логично. Там и будет дефолтное значение задаваться. бизнес логика как никак. Но из сервиса торчит метод валидации. Фу
+        // - в сервисе просто добавить еще один метод getUserBookingsByState, который принимает String? не очень.
+        BookingStateForSearch state;
+        if (isNull(stateStr)) {
+            state = BookingStateForSearch.ALL;
+        } else {
+            try {
+                state = BookingStateForSearch.valueOf(stateStr);
+            } catch (IllegalArgumentException exp) {
+                throw new ValidationException(String.format("Unknown state: %s", stateStr));
+            }
+        }
+
+        final List<BookingDto> userBookings = bookingService.getUserBookingsByState(userId, state);
+        log.info(String.format("Список всех заявок на бронирование, созданных пользователем id = %s успешно получен", userId));
+
+        return userBookings;
     }
 
-    //    Получение списка бронирований для всех вещей текущего пользователя. (т.е все заявки на бронирование вещей данного пользователя.)
-    //    Эндпоинт — GET /bookings/owner?state={state}. Этот запрос имеет смысл для владельца хотя бы одной вещи.
-    //    Работа параметра state аналогична его работе в предыдущем сценарии.
+    // Получение списка бронирований для всех вещей текущего пользователя. (т.е все заявки на бронирование вещей данного пользователя.)
     @GetMapping("/owner")
-    public List<BookingDto> getBookingItemsByOwner(@RequestHeader(USER_ID_REQUEST_HEADER) long ownerId,
-                                                   @RequestParam(name = "state", defaultValue = "All") BookingStateForSearch state) {
-        log.info(String.format("GET /bookings/owner?state={state}, {state} = %s, %s = %s", state, USER_ID_REQUEST_HEADER, ownerId));
+    public List<BookingDto> getBookingsByItemOwner(@RequestHeader(USER_ID_REQUEST_HEADER) long ownerId,
+                                                   @RequestParam(name = "state", required = false) String stateStr) {
+        log.info(String.format("GET /bookings/owner?state={state}, {state} = %s, %s = %s", stateStr, USER_ID_REQUEST_HEADER, ownerId));
 
-        return null;
+        // ToDo
+        // этот код валидации нужно куда-то пристроить...
+        // - в само enum... Дефолтное значение наверное разве, что передавать (а то с фига он знает, что по дефолту). Хотя ALL. Даже не знаю
+        // - в сервис? с одной стороны логично. Там и будет дефолтное значение задаваться. бизнес логика как никак. Но из сервиса торчит метод валидации. Фу
+        // - в сервисе просто добавить еще один метод getUserBookingsByState, который принимает String? не очень.
+        BookingStateForSearch state;
+        if (isNull(stateStr)) {
+            state = BookingStateForSearch.ALL;
+        } else {
+            try {
+                state = BookingStateForSearch.valueOf(stateStr);
+            } catch (IllegalArgumentException exp) {
+                throw new ValidationException(String.format("Unknown state: %s", stateStr));
+            }
+        }
+
+        final List<BookingDto> ownerBookings = bookingService.getBookingsByItemOwner(ownerId, state);
+        log.info(String.format("Список всех заявок на бронирование вещей пользователя id = %s успешно получен", ownerId));
+
+        return ownerBookings;
     }
 }
