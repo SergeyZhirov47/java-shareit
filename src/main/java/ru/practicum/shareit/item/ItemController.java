@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemWithBookingDto;
 import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
@@ -42,10 +43,10 @@ public class ItemController {
 
     // Получение информации о вещи пользователем
     @GetMapping("/{itemId}")
-    public ItemDto getItemById(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
-                               @PathVariable(name = "itemId") long itemId) {
+    public ItemWithBookingDto getItemById(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
+                                          @PathVariable(name = "itemId") long itemId) {
         log.info(String.format("GET /items/{itemId}, {itemId} = %s, %s = %s", itemId, USER_ID_REQUEST_HEADER, userId));
-        final ItemDto item = itemService.getById(itemId);
+        final ItemWithBookingDto item = itemService.getById(itemId, userId);
         log.info(String.format("Успешно получены данные о вещи с id = %s", item.getId()));
 
         return item;
@@ -53,9 +54,9 @@ public class ItemController {
 
     // Просмотр владельцем списка всех его вещей с указанием названия и описания для каждой
     @GetMapping
-    public List<ItemDto> getAllOwnerItems(@RequestHeader(USER_ID_REQUEST_HEADER) long ownerId) {
+    public List<ItemWithBookingDto> getAllOwnerItems(@RequestHeader(USER_ID_REQUEST_HEADER) long ownerId) {
         log.info(String.format("GET /items, %s = %s", USER_ID_REQUEST_HEADER, ownerId));
-        final List<ItemDto> ownerItems = itemService.getAllOwnerItems(ownerId);
+        final List<ItemWithBookingDto> ownerItems = itemService.getAllOwnerItems(ownerId);
         log.info(String.format("Успешно получены вещи (%s штук) пользователя с id = %s", ownerItems.size(), ownerId));
 
         return ownerItems;
