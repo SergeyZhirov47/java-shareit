@@ -28,8 +28,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static java.util.Objects.nonNull;
-
 @Service
 @AllArgsConstructor
 public class BookingServiceImpl implements BookingService {
@@ -52,7 +50,7 @@ public class BookingServiceImpl implements BookingService {
         // Валидация (начало и конец бронирования)
         validateBookingCreateDto(newBooking);
 
-        // Проверяем, что пользователь не владелец вещи (не логично у самого себя бронировать вещь).
+        // Проверяем, что пользователь не владелец вещи (нелогично у самого себя бронировать вещь).
         if (item.getOwner().getId().equals(userId)) {
             // ToDo
             // Почему 404 должно возвращать я не понимаю.
@@ -129,6 +127,8 @@ public class BookingServiceImpl implements BookingService {
 
     // ToDo
     // в этих методах много похожего... можно ли вынести в общий метод/методы?
+    // ToDo
+    // вынести в CustomBookingRepository ?
 
     // Получение списка всех бронирований текущего пользователя (т.е список всех заявок на бронирование созданных данным пользователем).
     // Бронирования должны возвращаться отсортированными по дате от более новых к более старым.
@@ -138,13 +138,11 @@ public class BookingServiceImpl implements BookingService {
         checkUserExists(userId);
 
         // Все заявки на бронирование, созданные пользователем.
-        final BooleanExpression userBookingsExpression = QBooking.booking.booker.id.eq(userId);
+        BooleanExpression userBookingsExpression = QBooking.booking.booker.id.eq(userId);
 
         // условие сформированное исходя из searchState.
         final BooleanExpression searchStateExpression = getSearchExpressionByState(searchState);
-        if (nonNull(searchStateExpression)) {
-            userBookingsExpression.and(searchStateExpression);
-        }
+        userBookingsExpression = userBookingsExpression.and(searchStateExpression);
 
         final Iterable<Booking> userBookings = bookingRepository.findAll(userBookingsExpression, Sort.by(Sort.Direction.DESC, "start"));
         final List<BookingDto> userBookingsDto = StreamSupport.stream(userBookings.spliterator(), false)
@@ -163,13 +161,11 @@ public class BookingServiceImpl implements BookingService {
         checkUserExists(ownerId);
 
         // Все заявки на бронирование вещей данного пользователя.
-        final BooleanExpression bookingsByItemsOwnerExpression = QBooking.booking.item.owner.id.eq(ownerId);
+        BooleanExpression bookingsByItemsOwnerExpression = QBooking.booking.item.owner.id.eq(ownerId);
 
         // условие сформированное исходя из searchState.
         final BooleanExpression searchStateExpression = getSearchExpressionByState(searchState);
-        if (nonNull(searchStateExpression)) {
-            bookingsByItemsOwnerExpression.and(searchStateExpression);
-        }
+        bookingsByItemsOwnerExpression = bookingsByItemsOwnerExpression.and(searchStateExpression);
 
         final Iterable<Booking> bookingsByOwner = bookingRepository.findAll(bookingsByItemsOwnerExpression, Sort.by(Sort.Direction.DESC, "start"));
         final List<BookingDto> bookingsByOwnerDto = StreamSupport.stream(bookingsByOwner.spliterator(), false)
@@ -247,12 +243,6 @@ public class BookingServiceImpl implements BookingService {
         return userOpt.get();
     }
 
-    private void checkUserExists(long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new UserNotFoundException(userId);
-        }
-    }
-
     private Item getItem(long itemId) {
         final Optional<Item> itemOpt = itemRepository.findById(itemId);
 
@@ -261,5 +251,11 @@ public class BookingServiceImpl implements BookingService {
         }
 
         return itemOpt.get();
+    }
+
+    private void checkUserExists(long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new UserNotFoundException(userId);
+        }
     }
 }
