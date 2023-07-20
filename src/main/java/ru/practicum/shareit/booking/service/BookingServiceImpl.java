@@ -13,8 +13,8 @@ import ru.practicum.shareit.booking.model.BookingStateForSearch;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.model.QBooking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.booking.validation.BookingDatesValidator;
 import ru.practicum.shareit.common.NotFoundException;
-import ru.practicum.shareit.common.ValidationException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -205,24 +205,16 @@ public class BookingServiceImpl implements BookingService {
         return searchStateExpression;
     }
 
-    // ToDo
-    // где эта логика должна быть? В моделе? тогда как dto получат к ней доступ?
-    // в сервисе? тогда в моделе вообще какая-то логика может быть?
     private void validateBookingCreateDto(BookingCreateDto bookingCreateDto) {
         final LocalDateTime start = bookingCreateDto.getStart();
         final LocalDateTime end = bookingCreateDto.getEnd();
 
-        if (start.equals(end)) {
-            throw new ValidationException("Дата начала бронирования не может быть равна дате конца бронирования!");
-        }
-
-        if (end.isBefore(start)) {
-            throw new ValidationException("Дата конца бронирования не может быть раньше даты начала бронирования!");
-        }
+        BookingDatesValidator.validate(start, end);
     }
 
     // ToDo
     // Практически один и тот же код... Как-то можно упростить?
+    // Вынести в какой-то отдельный класс? получение пользователя и вещи много где используется.
     private Booking getBooking(long bookingId) {
         final Optional<Booking> bookingOpt = bookingRepository.findById(bookingId);
 
