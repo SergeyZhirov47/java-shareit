@@ -15,9 +15,6 @@ import java.util.List;
 
 import static java.util.Objects.isNull;
 
-/**
- * TODO Sprint add-bookings.
- */
 @RestController
 @RequestMapping(path = "/bookings")
 @Validated
@@ -62,8 +59,8 @@ public class BookingController {
         return bookingDto;
     }
 
-    //    Получение списка всех бронирований текущего пользователя (т.е список всех заявок на бронирование созданных данным пользователем).
-    //    Бронирования должны возвращаться отсортированными по дате от более новых к более старым.
+    // Получение списка всех бронирований текущего пользователя (т.е список всех заявок на бронирование созданных данным пользователем).
+    // Бронирования должны возвращаться отсортированными по дате от более новых к более старым.
     @GetMapping
     public List<BookingDto> getUserBookingsByState(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
                                                    @RequestParam(name = "state", required = false) String stateStr) {
