@@ -14,6 +14,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 import static java.util.Objects.isNull;
+import static ru.practicum.shareit.common.RequestHeaderName.USER_ID_REQUEST_HEADER;
 
 @RestController
 @RequestMapping(path = "/bookings")
@@ -21,10 +22,6 @@ import static java.util.Objects.isNull;
 @AllArgsConstructor
 @Slf4j
 public class BookingController {
-    // ToDo!
-    // Такой же USER_ID_REQUEST_HEADER  используется и в ItemController
-    // вынести в отдельное место
-    private static final String USER_ID_REQUEST_HEADER = "X-Sharer-User-Id";
     private final BookingService bookingService;
 
     // Добавление нового запроса на бронирование.

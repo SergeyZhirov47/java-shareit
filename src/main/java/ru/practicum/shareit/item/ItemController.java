@@ -9,12 +9,13 @@ import ru.practicum.shareit.item.service.ItemService;
 import javax.validation.Valid;
 import java.util.List;
 
+import static ru.practicum.shareit.common.RequestHeaderName.USER_ID_REQUEST_HEADER;
+
 @RestController
 @RequestMapping("/items")
 @AllArgsConstructor
 @Slf4j
 public class ItemController {
-    private static final String USER_ID_REQUEST_HEADER = "X-Sharer-User-Id";
     private final ItemService itemService;
 
     // Добавление вещи
