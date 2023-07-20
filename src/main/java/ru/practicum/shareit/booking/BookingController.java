@@ -13,7 +13,7 @@ import ru.practicum.shareit.booking.validation.BookingStateForSearchValidator;
 import javax.validation.Valid;
 import java.util.List;
 
-import static ru.practicum.shareit.common.RequestHeaderName.USER_ID_REQUEST_HEADER;
+import static ru.practicum.shareit.common.RequestHeaderName.*;
 
 @RestController
 @RequestMapping(path = "/bookings")

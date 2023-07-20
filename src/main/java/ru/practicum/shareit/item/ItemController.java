@@ -2,6 +2,7 @@ package ru.practicum.shareit.item;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.service.ItemService;
@@ -9,10 +10,11 @@ import ru.practicum.shareit.item.service.ItemService;
 import javax.validation.Valid;
 import java.util.List;
 
-import static ru.practicum.shareit.common.RequestHeaderName.USER_ID_REQUEST_HEADER;
+import static ru.practicum.shareit.common.RequestHeaderName.*;
 
 @RestController
 @RequestMapping("/items")
+@Validated
 @AllArgsConstructor
 @Slf4j
 public class ItemController {
@@ -42,10 +44,10 @@ public class ItemController {
 
     // Получение информации о вещи пользователем
     @GetMapping("/{itemId}")
-    public ItemWithBookingDto getItemById(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
-                                          @PathVariable(name = "itemId") long itemId) {
+    public ItemWithAdditionalDataDto getItemById(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
+                                                 @PathVariable(name = "itemId") long itemId) {
         log.info(String.format("GET /items/{itemId}, {itemId} = %s, %s = %s", itemId, USER_ID_REQUEST_HEADER, userId));
-        final ItemWithBookingDto item = itemService.getById(itemId, userId);
+        final ItemWithAdditionalDataDto item = itemService.getById(itemId, userId);
         log.info(String.format("Успешно получены данные о вещи с id = %s", item.getId()));
 
         return item;
@@ -53,9 +55,9 @@ public class ItemController {
 
     // Просмотр владельцем списка всех его вещей с указанием названия и описания для каждой
     @GetMapping
-    public List<ItemWithBookingDto> getAllOwnerItems(@RequestHeader(USER_ID_REQUEST_HEADER) long ownerId) {
+    public List<ItemWithAdditionalDataDto> getAllOwnerItems(@RequestHeader(USER_ID_REQUEST_HEADER) long ownerId) {
         log.info(String.format("GET /items, %s = %s", USER_ID_REQUEST_HEADER, ownerId));
-        final List<ItemWithBookingDto> ownerItems = itemService.getAllOwnerItems(ownerId);
+        final List<ItemWithAdditionalDataDto> ownerItems = itemService.getAllOwnerItems(ownerId);
         log.info(String.format("Успешно получены вещи (%s штук) пользователя с id = %s", ownerItems.size(), ownerId));
 
         return ownerItems;

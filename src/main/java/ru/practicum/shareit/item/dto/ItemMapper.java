@@ -16,8 +16,8 @@ public class ItemMapper extends AbstractMapper {
                 .build();
     }
 
-    public ItemWithBookingDto toItemWithBookingDto(Item item) {
-        return ItemWithBookingDto.builder()
+    public ItemWithAdditionalDataDto toItemWithAdditionalDataDto(Item item) {
+        return ItemWithAdditionalDataDto.builder()
                 .id(item.getId())
                 .name(item.getName())
                 .description(item.getDescription())

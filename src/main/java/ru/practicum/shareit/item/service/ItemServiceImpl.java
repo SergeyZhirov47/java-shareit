@@ -76,16 +76,16 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemWithBookingDto getById(long id, long userId) {
+    public ItemWithAdditionalDataDto getById(long id, long userId) {
         final Optional<Item> itemOpt = itemRepository.findById(id);
         final Item item = itemOpt.orElseThrow(() -> new ItemNotFoundException(id));
 
-        final ItemWithBookingDto itemWithBookingDto = ItemMapper.toItemWithBookingDto(item);
+        final ItemWithAdditionalDataDto itemWithAdditionalDataDto = ItemMapper.toItemWithAdditionalDataDto(item);
 
         // Комментарии.
         final List<Comment> commentsList = commentRepository.findByItemId(id); // commentRepository.findByAuthorIdAndItemId(userId, id);
         final List<CommentDto> commentDtoList = commentsList.stream().map(CommentMapper::toCommentDto).collect(toUnmodifiableList());
-        itemWithBookingDto.setComments(commentDtoList);
+        itemWithAdditionalDataDto.setComments(commentDtoList);
 
         // Данные о бронировании может видеть только владелец вещи.
         if (item.getOwner().getId().equals(userId)) {
@@ -93,10 +93,10 @@ public class ItemServiceImpl implements ItemService {
 
             final Booking lastBooking = bookingRepository.getLastBookingForItemById(id, now);
             final Booking nextBooking = bookingRepository.getNextBookingForItemById(id, now);
-            setLastAndNextBooking(itemWithBookingDto, lastBooking, nextBooking);
+            setLastAndNextBooking(itemWithAdditionalDataDto, lastBooking, nextBooking);
         }
 
-        return itemWithBookingDto;
+        return itemWithAdditionalDataDto;
     }
 
     @Override
@@ -111,11 +111,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemWithBookingDto> getAllOwnerItems(long ownerId) {
+    public List<ItemWithAdditionalDataDto> getAllOwnerItems(long ownerId) {
         checkUserExists(ownerId);
 
         final List<Item> ownerItems = itemRepository.findByOwnerId(ownerId);
-        final List<ItemWithBookingDto> ownerItemDto = new ArrayList<>();
+        final List<ItemWithAdditionalDataDto> ownerItemDto = new ArrayList<>();
 
         if (!ownerItems.isEmpty()) {
             final List<Long> itemIds = ownerItems.stream().map(Item::getId).collect(toUnmodifiableList());
@@ -127,13 +127,13 @@ public class ItemServiceImpl implements ItemService {
 
             // Установка последнего и последующего бронирования для каждого предмета.
             for (final Item item : ownerItems) {
-                final ItemWithBookingDto itemWithBookingDto = ItemMapper.toItemWithBookingDto(item);
+                final ItemWithAdditionalDataDto itemWithAdditionalDataDto = ItemMapper.toItemWithAdditionalDataDto(item);
 
                 final Booking lastBooking = lastBookings.get(item.getId());
                 final Booking nextBooking = nextBookings.get(item.getId());
-                setLastAndNextBooking(itemWithBookingDto, lastBooking, nextBooking);
+                setLastAndNextBooking(itemWithAdditionalDataDto, lastBooking, nextBooking);
 
-                ownerItemDto.add(itemWithBookingDto);
+                ownerItemDto.add(itemWithAdditionalDataDto);
             }
         }
 
@@ -201,8 +201,8 @@ public class ItemServiceImpl implements ItemService {
         return userOpt.orElseThrow(() -> new UserNotFoundException(userId));
     }
 
-    private void setLastAndNextBooking(ItemWithBookingDto itemWithBookingDto, Booking lastBooking, Booking nextBooking) {
-        itemWithBookingDto.setLastBooking(BookingMapper.toBookingForItemDto(lastBooking));
-        itemWithBookingDto.setNextBooking(BookingMapper.toBookingForItemDto(nextBooking));
+    private void setLastAndNextBooking(ItemWithAdditionalDataDto itemWithAdditionalDataDto, Booking lastBooking, Booking nextBooking) {
+        itemWithAdditionalDataDto.setLastBooking(BookingMapper.toBookingForItemDto(lastBooking));
+        itemWithAdditionalDataDto.setNextBooking(BookingMapper.toBookingForItemDto(nextBooking));
     }
 }

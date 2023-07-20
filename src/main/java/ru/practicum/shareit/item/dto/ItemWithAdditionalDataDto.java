@@ -15,7 +15,7 @@ import java.util.List;
 @Data
 @RequiredArgsConstructor
 @AllArgsConstructor
-public class ItemWithBookingDto {
+public class ItemWithAdditionalDataDto {
     private Long id;
     private String name;
     private String description;

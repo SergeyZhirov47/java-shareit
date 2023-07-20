@@ -52,8 +52,6 @@ public class BookingServiceImpl implements BookingService {
 
         // Проверяем, что пользователь не владелец вещи (нелогично у самого себя бронировать вещь).
         if (item.getOwner().getId().equals(userId)) {
-            // ToDo
-            // Почему 404 должно возвращать я не понимаю.
             throw new NotFoundException("Пользователь не может бронировать собственные вещи");
         }
 
@@ -90,8 +88,6 @@ public class BookingServiceImpl implements BookingService {
 
         // Проверяем, что одобрение/отклонение устанавливает владелец вещи.
         if (!bookingRepository.isUserOwnItemFromBooking(bookingId, userId)) {
-            // ToDo
-            // придумать исключение для этого случая.
             throw new NotFoundException(String.format("Статус заявки на бронирование вещи может менять только ее владелец! (id заявки = %s, id пользователя = %s)", bookingId, userId));
         }
 
@@ -117,8 +113,6 @@ public class BookingServiceImpl implements BookingService {
         final boolean isUserOwnItem = bookingRepository.isUserOwnItemFromBooking(id, userId);
         final boolean isUserAuthorBooking = bookingRepository.isUserBookingAuthor(id, userId);
         if (!isUserOwnItem && !isUserAuthorBooking) {
-            // ToDo
-            // Почему 404 тут должна быть?
             throw new NotFoundException(String.format("Данные о бронировании может запросить либо владелец вещи либо автор бронирования. Пользователь id = %s не подходит под эти требования", userId));
         }
 
