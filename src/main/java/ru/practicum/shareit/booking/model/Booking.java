@@ -10,9 +10,6 @@ import ru.practicum.shareit.user.model.User;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-/**
- * TODO Sprint add-bookings.
- */
 @Entity
 @Table(name = "bookings")
 @Builder
@@ -33,10 +30,6 @@ public class Booking {
     private LocalDateTime start; // дата и время начала бронирования
     @Column(name = "end_booking")
     private LocalDateTime end; // дата и время конца бронирования
-    // ToDo
-    // хотелось бы хранить не строку, id статуса.
-    // но хранение по порядку тоже не очень.
-    // https://www.baeldung.com/jpa-persisting-enums-in-jpa - посмотреть раздел 4.
     @Enumerated(EnumType.STRING)
     private BookingStatus status; // статус бронирования
 }

@@ -40,8 +40,7 @@ public class UserServiceImpl implements UserService {
         // По тестам postman получается, что теперь БД будет "проверять" уникальность email.
         try {
             user = userRepository.save(user);
-        }
-        catch (DataIntegrityViolationException exp) {
+        } catch (DataIntegrityViolationException exp) {
             throw new EmailAlreadyUsedException(String.format("Пользователь с email = %s уже существует!", user.getEmail()));
         }
 
