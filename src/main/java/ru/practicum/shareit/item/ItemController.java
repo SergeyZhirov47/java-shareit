@@ -3,9 +3,7 @@ package ru.practicum.shareit.item;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.dto.ItemCreateDto;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemWithBookingDto;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
@@ -72,5 +70,17 @@ public class ItemController {
         log.info(String.format("Успешно получены вещи (%s штук) по запросу \"%s\" пользователя с id = %s", searchedItems.size(), text, userId));
 
         return searchedItems;
+    }
+
+    // Добавление комментария к вещи, которую когда-то бронировал.
+    @PostMapping("/{itemId}/comment")
+    public CommentDto addComment(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
+                                 @Valid @RequestBody CommentCreateDto comment,
+                                 @PathVariable(name = "itemId") long itemId) {
+        log.info(String.format("POST /items/{itemId}/comment, {itemId} = %s, %s = %s", itemId, USER_ID_REQUEST_HEADER, userId));
+        final CommentDto commentDto = itemService.addComment(itemId, userId, comment);
+        log.info(String.format("Комментарий успешно добавлен (id = %s)", commentDto.getId()));
+
+        return commentDto;
     }
 }

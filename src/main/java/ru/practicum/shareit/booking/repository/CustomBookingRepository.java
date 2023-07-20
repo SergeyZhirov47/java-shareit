@@ -16,4 +16,6 @@ public interface CustomBookingRepository {
 
     // Ключ - id предмета, значения - заявка на бронирование (следующее)
     Map<Long, Booking> getNextBookingForItemsByIdList(List<Long> itemIdList, LocalDateTime startDate);
+
+    boolean isUserBookingItem(long userId, long itemId, LocalDateTime startUsingBeforeDate);
 }

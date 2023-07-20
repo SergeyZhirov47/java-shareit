@@ -5,13 +5,12 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.item.dto.ItemCreateDto;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemMapper;
-import ru.practicum.shareit.item.dto.ItemWithBookingDto;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.exception.NotOwnerAccessException;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
@@ -31,6 +30,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
+    private final CommentRepository commentRepository;
 
     @Override
     public Long create(ItemCreateDto item, long ownerId) {
@@ -81,6 +81,11 @@ public class ItemServiceImpl implements ItemService {
         final Item item = itemOpt.orElseThrow(() -> new ItemNotFoundException(id));
 
         final ItemWithBookingDto itemWithBookingDto = ItemMapper.toItemWithBookingDto(item);
+
+        // Комментарии.
+        final List<Comment> commentsList = commentRepository.findByItemId(id); // commentRepository.findByAuthorIdAndItemId(userId, id);
+        final List<CommentDto> commentDtoList = commentsList.stream().map(CommentMapper::toCommentDto).collect(toUnmodifiableList());
+        itemWithBookingDto.setComments(commentDtoList);
 
         // Данные о бронировании может видеть только владелец вещи.
         if (item.getOwner().getId().equals(userId)) {
@@ -147,6 +152,27 @@ public class ItemServiceImpl implements ItemService {
         return searchResult.stream().map(ItemMapper::toItemDto).collect(toUnmodifiableList());
     }
 
+    @Override
+    public CommentDto addComment(long itemId, long userId, CommentCreateDto commentDto) {
+        final Item item = getItem(itemId); // Проверяем (и получаем) существует ли вещь.
+        final User user = getUser(userId); // Проверяем (и получаем) существует ли пользователь.
+
+        // Проверяем, что пользователь брал в аренду вещь.
+        final boolean isUserBookingItem = bookingRepository.isUserBookingItem(userId, itemId, LocalDateTime.now());
+
+        if (!isUserBookingItem) {
+            throw new UnsupportedOperationException(String.format("Нельзя оставлять комментарий к вещи, которой еще не пользовался (id пользователя = %s, id вещи = %s)", userId, itemId));
+        }
+
+        Comment comment = CommentMapper.toComment(commentDto);
+        comment.setAuthor(user);
+        comment.setItem(item);
+
+        comment = commentRepository.save(comment);
+
+        return CommentMapper.toCommentDto(comment);
+    }
+
     private void checkUserOwnItem(long userId, long itemId) {
         if (!itemRepository.existsByIdAndOwnerId(itemId, userId)) {
             throw new NotOwnerAccessException(String.format("Вещь с id = %s не принадлежит пользователю с id = %s", itemId, userId));
@@ -163,6 +189,16 @@ public class ItemServiceImpl implements ItemService {
         if (!itemRepository.existsById(itemId)) {
             throw new ItemNotFoundException(itemId);
         }
+    }
+
+    private Item getItem(long itemId) {
+        final Optional<Item> itemOpt = itemRepository.findById(itemId);
+        return itemOpt.orElseThrow(() -> new ItemNotFoundException(itemId));
+    }
+
+    private User getUser(long userId) {
+        final Optional<User> userOpt = userRepository.findById(userId);
+        return userOpt.orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     private void setLastAndNextBooking(ItemWithBookingDto itemWithBookingDto, Booking lastBooking, Booking nextBooking) {

@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 import ru.practicum.shareit.booking.dto.BookingForItemDto;
 
+import java.util.List;
+
 @Builder
 @Jacksonized
 @Data
@@ -21,4 +23,5 @@ public class ItemWithBookingDto {
     private Boolean isAvailable;
     private BookingForItemDto lastBooking;
     private BookingForItemDto nextBooking;
+    private List<CommentDto> comments;
 }

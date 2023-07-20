@@ -12,14 +12,4 @@ public interface BookingRepository extends JpaRepository<Booking, Long>, Queryds
 
     @Query("SELECT case when count(b)> 0 then true else false end FROM Booking b WHERE b.id = :bookingId AND b.booker.id = :userId")
     boolean isUserBookingAuthor(@Param("bookingId") long bookingId, @Param("userId") long userId);
-
-    /*
-    @Query("SELECT b FROM Booking b WHERE b.item.id = :itemId AND b.status =ru.practicum.shareit.booking.model.BookingStatus.APPROVED " +
-            "AND b.end <= :endDate ORDER BY b.end DESC LIMIT 1")
-    Booking getLastBookingForItemById(@Param("itemId") long itemId, @Param("endDate") LocalDateTime endDate);
-
-    @Query("SELECT b FROM Booking b WHERE b.item.id = :itemId AND b.status = ru.practicum.shareit.booking.model.BookingStatus.APPROVED " +
-            "AND b.start >= :startDate ORDER BY b.start LIMIT 1")
-    Booking getNextBookingForItemById(@Param("itemId") long itemId, @Param("startDate") LocalDateTime startDate);
-     */
 }
