@@ -171,7 +171,7 @@ public class CustomBookingRepositoryImpl implements CustomBookingRepository {
     }
 
     private JPAQuery<Booking> getLastBookingSelectQuery(BooleanExpression whereExp) {
-        var orderBy = booking.end.desc();
+        var orderBy = booking.start.desc();
         return getBookingSelectQuery(whereExp, orderBy);
     }
 
