@@ -2,26 +2,29 @@ package ru.practicum.shareit.booking.repository;
 
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLTemplates;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.booking.model.QBooking;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
-import static ru.practicum.shareit.booking.model.QBooking.booking;
+// import static ru.practicum.shareit.booking.model.QBooking.booking;
 
-@Slf4j
 public class CustomBookingRepositoryImpl implements CustomBookingRepository {
     private final JPAQueryFactory queryFactory;
+    private final QBooking booking = new QBooking("booking");
+    private final QBooking subBooking = new QBooking("subBooking");
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -31,99 +34,68 @@ public class CustomBookingRepositoryImpl implements CustomBookingRepository {
 
     @Override
     public Booking getLastBookingForItemById(long itemId, LocalDateTime endDate) {
-        final BooleanExpression whereExp = getForItem(itemId).and(getLastBookingApproved(endDate));
-        final JPAQuery<Booking> query = getLastBookingSelectQuery(whereExp);
+        final QBookingQueryHelper helper = new QBookingQueryHelper(booking);
+
+        final BooleanExpression whereExp = helper.getLastBooking(itemId, endDate);
+        final JPAQuery<Booking> query = helper.getLastBookingSelectQuery(whereExp);
 
         return query.fetchFirst();
     }
 
     @Override
     public Map<Long, Booking> getLastBookingForItemsByIdList(List<Long> itemIdList, LocalDateTime endDate) {
-        final BooleanExpression whereExp = getForItemList(itemIdList).and(getLastBookingApproved(endDate));
+        final QBookingQueryHelper helper = new QBookingQueryHelper(booking);
+        final QBookingQueryHelper subHelper = new QBookingQueryHelper(subBooking);
 
-        // ToDo !!!
-        // Когда беру по in (itemIds), то нужно брать только одну запись.
-        // 1. Нужно тогда при сборе в мапу отсекать повторы (по идее можно брать первые значения для каждого booking).
-        // минус - коряво и в запросе получаю больше данных, чем нужно.
-        // 2. По идее нужно делать подзапрос для каждой вещи (чтобы дата равнялась мин или макс для этой вещи)
-        // минус - сложно. зато получаю ровно те данные, что нужно
+        var subQuery = JPAExpressions.select(subBooking.start.max())
+                .from(subBooking)
+                .where(subHelper.getLastBooking(itemIdList, endDate)
+                        .and(subBooking.item.id.eq(booking.item.id)))
+                .groupBy(subBooking.item.id);
 
-// ToDo
-        // Даже не понимаю как запрос составить
-//        select b1.* from Bookings b1
-//        inner join (
-//                select  b2.itemId, max(b2.end) as max_value from Bookings b2 -- нужно b2.id или нет?
-//              WHERE b2.status = Approved AND b2.end > :value
-//                  group by  b2.itemId
-//) ON b1.itemId = b2.itemId -- AND b1.end = b2.max_value ???
-        // WHERE b1.status = Approved AND b1.itemId in (...)  b2.end > :value
-//        and b1.end = max_value -- или сработает в ON и эта часть не нужна
+        final BooleanExpression whereExp = helper.getLastBooking(itemIdList, endDate).and(booking.start.eq(subQuery));
+        final List<Booking> lastBookings = queryFactory.selectFrom(booking).where(whereExp).fetch();
 
-        final JPAQuery<Booking> query = getLastBookingSelectQuery(whereExp);//.groupBy(booking.id, booking.item.id);
-
-        final List<Booking> lastBookings = query.fetch();
-        log.info("#lastBookings count = " + lastBookings.size());
-
-        final Map<Long, Booking> hackMap = new HashMap<>();
-        for (Booking b : lastBookings) {
-            final long itemId = b.getItem().getId();
-
-            if (!hackMap.containsKey(itemId)) {
-                hackMap.put(itemId, b);
-            }
-        }
-
-        return hackMap;
-        // return lastBookings.stream().collect(Collectors.toUnmodifiableMap(b -> b.getItem().getId(), b -> b));
+        return lastBookings.stream().collect(Collectors.toUnmodifiableMap(b -> b.getItem().getId(), b -> b));
     }
 
     @Override
     public Booking getNextBookingForItemById(long itemId, LocalDateTime startDate) {
-        final BooleanExpression whereExp = getForItem(itemId).and(getNextBookingApproved(startDate));
-        final JPAQuery<Booking> query = getNextBookingSelectQuery(whereExp);
+        final QBookingQueryHelper helper = new QBookingQueryHelper(booking);
+
+        final BooleanExpression whereExp = helper.getNextBooking(itemId, startDate);
+        final JPAQuery<Booking> query = helper.getNextBookingSelectQuery(whereExp);
 
         return query.fetchFirst();
     }
 
     @Override
     public Map<Long, Booking> getNextBookingForItemsByIdList(List<Long> itemIdList, LocalDateTime startDate) {
-        final BooleanExpression whereExp = getForItemList(itemIdList).and(getNextBookingApproved(startDate));
-        final JPAQuery<Booking> query = getNextBookingSelectQuery(whereExp);//.groupBy(booking.id, booking.item.id);
+        final QBookingQueryHelper helper = new QBookingQueryHelper(booking);
+        final QBookingQueryHelper subHelper = new QBookingQueryHelper(subBooking);
 
-        final List<Booking> nextBookings = query.fetch();
-        log.info("#nextBookings count = " + nextBookings.size());
+        var subQuery = JPAExpressions.select(subBooking.start.min())
+                .from(subBooking)
+                .where(subHelper.getNextBooking(itemIdList, startDate)
+                        .and(subBooking.item.id.eq(booking.item.id)))
+                .groupBy(subBooking.item.id);
 
-        final Map<Long, Booking> hackMap = new HashMap<>();
-        for (Booking b : nextBookings) {
-            final long itemId = b.getItem().getId();
+        final BooleanExpression whereExp = helper.getNextBooking(itemIdList, startDate).and(booking.start.eq(subQuery));
+        final List<Booking> nextBookings = queryFactory.selectFrom(booking).where(whereExp).fetch();
 
-            if (!hackMap.containsKey(itemId)) {
-                hackMap.put(itemId, b);
-            }
-        }
-
-        return hackMap;
-
-        //return nextBookings.stream().collect(Collectors.toUnmodifiableMap(b -> b.getItem().getId(), b -> b));
+        return nextBookings.stream().collect(Collectors.toUnmodifiableMap(b -> b.getItem().getId(), b -> b));
     }
 
     @Override
     public boolean isUserBookingItem(long userId, long itemId, LocalDateTime startUsingBeforeDate) {
-        BooleanExpression isUserBookerExp = booking.booker.id.eq(userId);
-        BooleanExpression itemExp = booking.item.id.eq(itemId);
-        BooleanExpression statusExp = booking.status.eq(BookingStatus.APPROVED);
-        BooleanExpression bookingPeriodExp = booking.start.before(startUsingBeforeDate); // неважно закончилась аренда или нет. главное, что уже начал пользоваться.
-        BooleanExpression whereExp = isUserBookerExp.and(itemExp).and(statusExp).and(bookingPeriodExp);
+        final QBookingQueryHelper helper = new QBookingQueryHelper(booking);
 
-        // ToDo
-        // По идее должен быть способ чуть лучше. Мне весь букинг не нужен. только наличие такой строки
-
-        // так возможно
-       /*
-        queryFactory.select(  queryFactory.selectFrom(booking)
-                .where(whereExp)
-                .exists()).fetchFirst()
-         */
+        final BooleanExpression isUserBookerExp = booking.booker.id.eq(userId);
+        final BooleanExpression bookingPeriodExp = booking.start.before(startUsingBeforeDate); // неважно закончилась аренда или нет. главное, что уже начал пользоваться.
+        final BooleanExpression whereExp = isUserBookerExp
+                .and(helper.getByItemId(itemId))
+                .and(helper.getApproved())
+                .and(bookingPeriodExp);
 
         final Booking oneOfBooking = queryFactory.selectFrom(booking)
                 .where(whereExp)
@@ -132,51 +104,72 @@ public class CustomBookingRepositoryImpl implements CustomBookingRepository {
         return nonNull(oneOfBooking);
     }
 
-    private BooleanExpression getForItem(long itemId) {
-        return booking.item.id.eq(itemId);
-    }
+    @RequiredArgsConstructor
+    class QBookingQueryHelper {
+        private final QBooking booking;
 
-    private BooleanExpression getForItemList(List<Long> itemIds) {
-        return booking.item.id.in(itemIds);
-    }
+        private BooleanExpression getByItemId(long itemId) {
+            return booking.item.id.eq(itemId);
+        }
 
-    private BooleanExpression getWithBookingStatus(BookingStatus status) {
-        return booking.status.eq(status);
-    }
+        private BooleanExpression getByItemIdList(List<Long> itemIds) {
+            return booking.item.id.in(itemIds);
+        }
 
-    private BooleanExpression getApproved() {
-        return getWithBookingStatus(BookingStatus.APPROVED);
-    }
+        private BooleanExpression getWithBookingStatus(BookingStatus status) {
+            return booking.status.eq(status);
+        }
 
-    private BooleanExpression getLastBooking(LocalDateTime endDate) {
-        return booking.start.before(endDate);
-    }
+        private BooleanExpression getApproved() {
+            return getWithBookingStatus(BookingStatus.APPROVED);
+        }
 
-    private BooleanExpression getNextBooking(LocalDateTime startDate) {
-        return booking.start.after(startDate);
-    }
+        private BooleanExpression getLastBooking(LocalDateTime endDate) {
+            return booking.start.before(endDate);
+        }
 
-    private BooleanExpression getLastBookingApproved(LocalDateTime endDate) {
-        return getApproved().and(getLastBooking(endDate));
-    }
+        private BooleanExpression getNextBooking(LocalDateTime startDate) {
+            return booking.start.after(startDate);
+        }
 
-    private BooleanExpression getNextBookingApproved(LocalDateTime startDate) {
-        return getApproved().and(getNextBooking(startDate));
-    }
+        private BooleanExpression getLastBookingApproved(LocalDateTime endDate) {
+            return getApproved().and(getLastBooking(endDate));
+        }
 
-    private JPAQuery<Booking> getBookingSelectQuery(BooleanExpression whereExp, OrderSpecifier<LocalDateTime> orderByDate) {
-        return queryFactory.selectFrom(booking)
-                .where(whereExp)
-                .orderBy(orderByDate);
-    }
+        private BooleanExpression getNextBookingApproved(LocalDateTime startDate) {
+            return getApproved().and(getNextBooking(startDate));
+        }
 
-    private JPAQuery<Booking> getLastBookingSelectQuery(BooleanExpression whereExp) {
-        var orderBy = booking.start.desc();
-        return getBookingSelectQuery(whereExp, orderBy);
-    }
+        private BooleanExpression getLastBooking(long itemId, LocalDateTime endDate) {
+            return getByItemId(itemId).and(getApproved()).and(getLastBooking(endDate));
+        }
 
-    private JPAQuery<Booking> getNextBookingSelectQuery(BooleanExpression whereExp) {
-        var orderBy = booking.start.asc();
-        return getBookingSelectQuery(whereExp, orderBy);
+        private BooleanExpression getLastBooking(List<Long> itemIds, LocalDateTime endDate) {
+            return getByItemIdList(itemIds).and(getApproved()).and(getLastBooking(endDate));
+        }
+
+        private BooleanExpression getNextBooking(long itemId, LocalDateTime startDate) {
+            return getByItemId(itemId).and(getApproved()).and(getNextBooking(startDate));
+        }
+
+        private BooleanExpression getNextBooking(List<Long> itemIds, LocalDateTime startDate) {
+            return getByItemIdList(itemIds).and(getApproved()).and(getNextBooking(startDate));
+        }
+
+        private JPAQuery<Booking> getBookingSelectQuery(BooleanExpression whereExp, OrderSpecifier<LocalDateTime> orderByDate) {
+            return queryFactory.selectFrom(booking)
+                    .where(whereExp)
+                    .orderBy(orderByDate);
+        }
+
+        private JPAQuery<Booking> getLastBookingSelectQuery(BooleanExpression whereExp) {
+            var orderBy = booking.start.desc();
+            return getBookingSelectQuery(whereExp, orderBy);
+        }
+
+        private JPAQuery<Booking> getNextBookingSelectQuery(BooleanExpression whereExp) {
+            var orderBy = booking.start.asc();
+            return getBookingSelectQuery(whereExp, orderBy);
+        }
     }
 }
