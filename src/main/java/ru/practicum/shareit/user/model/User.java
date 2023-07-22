@@ -18,7 +18,7 @@ import javax.validation.constraints.NotBlank;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;  // уникальный идентификатор пользователя
+    private Long id; // уникальный идентификатор пользователя
     @NotBlank
     private String name; // имя или логин пользователя
     @NotBlank
