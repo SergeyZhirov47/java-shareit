@@ -56,7 +56,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto update(long id, ItemDto item, long ownerId) {
         checkItemExists(id);
-        checkUserExists(ownerId);
+        userRepository.checkUserExists(ownerId);
         checkUserOwnItem(ownerId, id);
 
         // Обновление
@@ -102,7 +102,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto getOwnerItemById(long itemId, long ownerId) {
         checkItemExists(itemId);
-        checkUserExists(ownerId);
+        userRepository.checkUserExists(ownerId);
 
         final Optional<Item> itemOpt = itemRepository.findByIdAndOwnerId(itemId, ownerId);
         final Item item = itemOpt.orElseThrow(() -> new ItemNotFoundException(itemId));
@@ -112,7 +112,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemWithAdditionalDataDto> getAllOwnerItems(long ownerId) {
-        checkUserExists(ownerId);
+        userRepository.checkUserExists(ownerId);
 
         final List<Item> ownerItems = itemRepository.findByOwnerId(ownerId);
         final List<ItemWithAdditionalDataDto> ownerItemDto = new ArrayList<>();
@@ -155,7 +155,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public CommentDto addComment(long itemId, long userId, CommentCreateDto commentDto) {
         final Item item = getItem(itemId); // Проверяем (и получаем) существует ли вещь.
-        final User user = getUser(userId); // Проверяем (и получаем) существует ли пользователь.
+        final User user = userRepository.getUserById(userId); // Проверяем (и получаем) существует ли пользователь.
 
         // Проверяем, что пользователь брал в аренду вещь.
         final boolean isUserBookingItem = bookingRepository.isUserBookingItem(userId, itemId, LocalDateTime.now());
@@ -179,12 +179,6 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
-    private void checkUserExists(long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new UserNotFoundException(userId);
-        }
-    }
-
     private void checkItemExists(long itemId) {
         if (!itemRepository.existsById(itemId)) {
             throw new ItemNotFoundException(itemId);
@@ -194,11 +188,6 @@ public class ItemServiceImpl implements ItemService {
     private Item getItem(long itemId) {
         final Optional<Item> itemOpt = itemRepository.findById(itemId);
         return itemOpt.orElseThrow(() -> new ItemNotFoundException(itemId));
-    }
-
-    private User getUser(long userId) {
-        final Optional<User> userOpt = userRepository.findById(userId);
-        return userOpt.orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     private void setLastAndNextBooking(ItemWithAdditionalDataDto itemWithAdditionalDataDto, Booking lastBooking, Booking nextBooking) {

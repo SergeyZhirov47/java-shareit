@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
-// import static ru.practicum.shareit.booking.model.QBooking.booking;
 
 public class CustomBookingRepositoryImpl implements CustomBookingRepository {
     private final JPAQueryFactory queryFactory;

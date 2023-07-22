@@ -18,7 +18,6 @@ import ru.practicum.shareit.common.NotFoundException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -41,7 +40,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDto create(BookingCreateDto newBooking, long userId) {
         // Проверяем, что пользователь существует.
-        final User user = getUser(userId);
+        final User user = userRepository.getUserById(userId);
 
         // Проверяем, что вещь существует.
         final long itemId = newBooking.getItemId();
@@ -57,8 +56,6 @@ public class BookingServiceImpl implements BookingService {
 
         // Проверяем, что вещь доступна.
         if (!item.isAvailable()) {
-            // ToDo
-            // придумать исключение для этого случая.
             throw new UnsupportedOperationException(String.format("Вещь с id = %s недоступна для бронирования!", itemId));
         }
 
@@ -81,8 +78,6 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = getBooking(bookingId);
 
         if (booking.getStatus() != BookingStatus.WAITING) {
-            // ToDo
-            // придумать исключение для этого случая.
             throw new UnsupportedOperationException(String.format("При подтверждении/отклонении заявки ее статус должен быть %s. Текущий статус - %s", BookingStatus.WAITING, booking.getStatus()));
         }
 
@@ -104,7 +99,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDto getBooking(long id, long userId) {
         // Проверяем существует ли пользователь.
-        checkUserExists(userId);
+        userRepository.checkUserExists(userId);
 
         // Проверяем есть ли заявка на бронирование.
         final Booking booking = getBooking(id);
@@ -129,7 +124,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getUserBookingsByState(long userId, BookingStateForSearch searchState) {
         // Проверяем существует ли пользователь.
-        checkUserExists(userId);
+        userRepository.checkUserExists(userId);
 
         // Все заявки на бронирование, созданные пользователем.
         BooleanExpression userBookingsExpression = QBooking.booking.booker.id.eq(userId);
@@ -152,7 +147,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getBookingsByItemOwner(long ownerId, BookingStateForSearch searchState) {
         // Проверяем существует ли пользователь.
-        checkUserExists(ownerId);
+        userRepository.checkUserExists(ownerId);
 
         // Все заявки на бронирование вещей данного пользователя.
         BooleanExpression bookingsByItemsOwnerExpression = QBooking.booking.item.owner.id.eq(ownerId);
@@ -219,16 +214,6 @@ public class BookingServiceImpl implements BookingService {
         return bookingOpt.get();
     }
 
-    private User getUser(long userId) {
-        final Optional<User> userOpt = userRepository.findById(userId);
-
-        if (userOpt.isEmpty()) {
-            throw new UserNotFoundException(userId);
-        }
-
-        return userOpt.get();
-    }
-
     private Item getItem(long itemId) {
         final Optional<Item> itemOpt = itemRepository.findById(itemId);
 
@@ -237,11 +222,5 @@ public class BookingServiceImpl implements BookingService {
         }
 
         return itemOpt.get();
-    }
-
-    private void checkUserExists(long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new UserNotFoundException(userId);
-        }
     }
 }
