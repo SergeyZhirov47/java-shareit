@@ -8,17 +8,17 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 public class UserCustomRepositoryImpl implements UserCustomRepository {
-    private final UserRepository userRepository;
+    private final JPAUserRepository jpaUserRepository;
 
     @Override
     public User getUserById(long id) {
-        final Optional<User> userOpt = userRepository.findById(id);
+        final Optional<User> userOpt = jpaUserRepository.findById(id);
         return userOpt.orElseThrow(() -> new UserNotFoundException(id));
     }
 
     @Override
     public void checkUserExists(long id) {
-        if (!userRepository.existsById(id)) {
+        if (!jpaUserRepository.existsById(id)) {
             throw new UserNotFoundException(id);
         }
     }
