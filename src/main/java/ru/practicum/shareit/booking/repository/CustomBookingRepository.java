@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking.repository;
 
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingStateForSearch;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,4 +19,8 @@ public interface CustomBookingRepository {
     Map<Long, Booking> getNextBookingForItemsByIdList(List<Long> itemIdList, LocalDateTime startDate);
 
     boolean isUserBookingItem(long userId, long itemId, LocalDateTime startUsingBeforeDate);
+
+    List<Booking> getUserBookingsByState(long userId, BookingStateForSearch searchState);
+
+    List<Booking> getBookingsByItemOwner(long ownerId, BookingStateForSearch searchState);
 }

@@ -8,6 +8,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingStateForSearch;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.model.QBooking;
 
@@ -101,6 +102,66 @@ public class CustomBookingRepositoryImpl implements CustomBookingRepository {
                 .fetchFirst();
 
         return nonNull(oneOfBooking);
+    }
+
+    @Override
+    public List<Booking> getUserBookingsByState(long userId, BookingStateForSearch searchState) {
+        // условие сформированное исходя из searchState.
+        final BooleanExpression searchStateExpression = getSearchExpressionByState(searchState);
+
+        // Все заявки на бронирование, созданные пользователем.
+        final BooleanExpression userBookingsExpression = QBooking.booking.booker.id.eq(userId)
+                .and(searchStateExpression);
+
+        return queryFactory.selectFrom(QBooking.booking)
+                .where(userBookingsExpression)
+                .orderBy(QBooking.booking.start.desc())
+                .fetch();
+    }
+
+    @Override
+    public List<Booking> getBookingsByItemOwner(long ownerId, BookingStateForSearch searchState) {
+        // условие сформированное исходя из searchState.
+        final BooleanExpression searchStateExpression = getSearchExpressionByState(searchState);
+
+        // Все заявки на бронирование вещей данного пользователя.
+        BooleanExpression bookingsByItemsOwnerExpression = QBooking.booking.item.owner.id.eq(ownerId)
+                .and(searchStateExpression);
+
+        return queryFactory.selectFrom(QBooking.booking)
+                .where(bookingsByItemsOwnerExpression)
+                .orderBy(QBooking.booking.start.desc())
+                .fetch();
+    }
+
+    private BooleanExpression getSearchExpressionByState(BookingStateForSearch searchState) {
+        BooleanExpression searchStateExpression = null;
+        final LocalDateTime now = LocalDateTime.now();
+
+        switch (searchState) {
+            case PAST: {
+                searchStateExpression = QBooking.booking.end.before(now);
+                break;
+            }
+            case FUTURE: {
+                searchStateExpression = QBooking.booking.start.after(now);
+                break;
+            }
+            case CURRENT: {
+                searchStateExpression = QBooking.booking.start.before(now).and(QBooking.booking.end.after(now));
+                break;
+            }
+            case WAITING: {
+                searchStateExpression = QBooking.booking.status.eq(BookingStatus.WAITING);
+                break;
+            }
+            case REJECTED: {
+                searchStateExpression = QBooking.booking.status.eq(BookingStatus.REJECTED);
+                break;
+            }
+        }
+
+        return searchStateExpression;
     }
 
     @RequiredArgsConstructor

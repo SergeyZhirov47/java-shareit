@@ -1,8 +1,6 @@
 package ru.practicum.shareit.booking.service;
 
-import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -11,7 +9,6 @@ import ru.practicum.shareit.booking.exception.BookingNotFoundException;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStateForSearch;
 import ru.practicum.shareit.booking.model.BookingStatus;
-import ru.practicum.shareit.booking.model.QBooking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.booking.validation.BookingDatesValidator;
 import ru.practicum.shareit.common.NotFoundException;
@@ -24,7 +21,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Service
 @AllArgsConstructor
@@ -113,11 +109,6 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingDto(booking);
     }
 
-    // ToDo
-    // в этих методах много похожего... можно ли вынести в общий метод/методы?
-    // ToDo
-    // вынести в CustomBookingRepository ?
-
     // Получение списка всех бронирований текущего пользователя (т.е список всех заявок на бронирование созданных данным пользователем).
     // Бронирования должны возвращаться отсортированными по дате от более новых к более старым.
     @Override
@@ -125,15 +116,9 @@ public class BookingServiceImpl implements BookingService {
         // Проверяем существует ли пользователь.
         userRepository.checkUserExists(userId);
 
-        // Все заявки на бронирование, созданные пользователем.
-        BooleanExpression userBookingsExpression = QBooking.booking.booker.id.eq(userId);
+        final List<Booking> userBookings = bookingRepository.getUserBookingsByState(userId, searchState);
 
-        // условие сформированное исходя из searchState.
-        final BooleanExpression searchStateExpression = getSearchExpressionByState(searchState);
-        userBookingsExpression = userBookingsExpression.and(searchStateExpression);
-
-        final Iterable<Booking> userBookings = bookingRepository.findAll(userBookingsExpression, Sort.by(Sort.Direction.DESC, "start"));
-        final List<BookingDto> userBookingsDto = StreamSupport.stream(userBookings.spliterator(), false)
+        final List<BookingDto> userBookingsDto = userBookings.stream()
                 .map(BookingMapper::toBookingDto)
                 .collect(Collectors.toUnmodifiableList());
 
@@ -148,49 +133,12 @@ public class BookingServiceImpl implements BookingService {
         // Проверяем существует ли пользователь.
         userRepository.checkUserExists(ownerId);
 
-        // Все заявки на бронирование вещей данного пользователя.
-        BooleanExpression bookingsByItemsOwnerExpression = QBooking.booking.item.owner.id.eq(ownerId);
-
-        // условие сформированное исходя из searchState.
-        final BooleanExpression searchStateExpression = getSearchExpressionByState(searchState);
-        bookingsByItemsOwnerExpression = bookingsByItemsOwnerExpression.and(searchStateExpression);
-
-        final Iterable<Booking> bookingsByOwner = bookingRepository.findAll(bookingsByItemsOwnerExpression, Sort.by(Sort.Direction.DESC, "start"));
-        final List<BookingDto> bookingsByOwnerDto = StreamSupport.stream(bookingsByOwner.spliterator(), false)
+        final List<Booking> bookingsByOwner = bookingRepository.getBookingsByItemOwner(ownerId, searchState);
+        final List<BookingDto> bookingsByOwnerDto = bookingsByOwner.stream()
                 .map(BookingMapper::toBookingDto)
                 .collect(Collectors.toUnmodifiableList());
 
         return bookingsByOwnerDto;
-    }
-
-    private BooleanExpression getSearchExpressionByState(BookingStateForSearch searchState) {
-        BooleanExpression searchStateExpression = null;
-        final LocalDateTime now = LocalDateTime.now();
-
-        switch (searchState) {
-            case PAST: {
-                searchStateExpression = QBooking.booking.end.before(now);
-                break;
-            }
-            case FUTURE: {
-                searchStateExpression = QBooking.booking.start.after(now);
-                break;
-            }
-            case CURRENT: {
-                searchStateExpression = QBooking.booking.start.before(now).and(QBooking.booking.end.after(now));
-                break;
-            }
-            case WAITING: {
-                searchStateExpression = QBooking.booking.status.eq(BookingStatus.WAITING);
-                break;
-            }
-            case REJECTED: {
-                searchStateExpression = QBooking.booking.status.eq(BookingStatus.REJECTED);
-                break;
-            }
-        }
-
-        return searchStateExpression;
     }
 
     private void validateBookingCreateDto(BookingCreateDto bookingCreateDto) {
