@@ -6,13 +6,11 @@ import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.item.dto.*;
-import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.exception.NotOwnerAccessException;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -20,7 +18,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static java.util.stream.Collectors.toUnmodifiableList;
 
@@ -34,13 +31,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Long create(ItemCreateDto item, long ownerId) {
-        final Optional<User> ownerOpt = userRepository.findById(ownerId);
-
-        if (ownerOpt.isEmpty()) {
-            throw new UserNotFoundException(ownerId);
-        }
-
-        final User owner = ownerOpt.get();
+        final User owner = userRepository.getUserById(ownerId);
         Item itemEntity = ItemMapper.toItem(item, owner);
         itemEntity = itemRepository.save(itemEntity);
 
@@ -55,13 +46,12 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto update(long id, ItemDto item, long ownerId) {
-        checkItemExists(id);
+        itemRepository.checkItemExists(id);
         userRepository.checkUserExists(ownerId);
         checkUserOwnItem(ownerId, id);
 
         // Обновление
-        final Optional<Item> itemOpt = itemRepository.findByIdAndOwnerId(id, ownerId);
-        final Item itemFromRepo = itemOpt.orElseThrow(() -> new ItemNotFoundException(id));
+        final Item itemFromRepo = itemRepository.getByIdAndOwnerId(id, ownerId);
 
         final Item changedItem = ItemMapper.updateIfDifferent(itemFromRepo, item);
 
@@ -77,13 +67,12 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemWithAdditionalDataDto getById(long id, long userId) {
-        final Optional<Item> itemOpt = itemRepository.findById(id);
-        final Item item = itemOpt.orElseThrow(() -> new ItemNotFoundException(id));
+        final Item item = itemRepository.getItemById(id);
 
         final ItemWithAdditionalDataDto itemWithAdditionalDataDto = ItemMapper.toItemWithAdditionalDataDto(item);
 
         // Комментарии.
-        final List<Comment> commentsList = commentRepository.findByItemId(id); // commentRepository.findByAuthorIdAndItemId(userId, id);
+        final List<Comment> commentsList = commentRepository.findByItemId(id);
         final List<CommentDto> commentDtoList = commentsList.stream().map(CommentMapper::toCommentDto).collect(toUnmodifiableList());
         itemWithAdditionalDataDto.setComments(commentDtoList);
 
@@ -101,11 +90,10 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto getOwnerItemById(long itemId, long ownerId) {
-        checkItemExists(itemId);
+        itemRepository.checkItemExists(itemId);
         userRepository.checkUserExists(ownerId);
 
-        final Optional<Item> itemOpt = itemRepository.findByIdAndOwnerId(itemId, ownerId);
-        final Item item = itemOpt.orElseThrow(() -> new ItemNotFoundException(itemId));
+        final Item item = itemRepository.getByIdAndOwnerId(itemId, ownerId);
 
         return ItemMapper.toItemDto(item);
     }
@@ -154,7 +142,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public CommentDto addComment(long itemId, long userId, CommentCreateDto commentDto) {
-        final Item item = getItem(itemId); // Проверяем (и получаем) существует ли вещь.
+        final Item item = itemRepository.getItemById(itemId); // Проверяем (и получаем) существует ли вещь.
         final User user = userRepository.getUserById(userId); // Проверяем (и получаем) существует ли пользователь.
 
         // Проверяем, что пользователь брал в аренду вещь.
@@ -177,17 +165,6 @@ public class ItemServiceImpl implements ItemService {
         if (!itemRepository.existsByIdAndOwnerId(itemId, userId)) {
             throw new NotOwnerAccessException(String.format("Вещь с id = %s не принадлежит пользователю с id = %s", itemId, userId));
         }
-    }
-
-    private void checkItemExists(long itemId) {
-        if (!itemRepository.existsById(itemId)) {
-            throw new ItemNotFoundException(itemId);
-        }
-    }
-
-    private Item getItem(long itemId) {
-        final Optional<Item> itemOpt = itemRepository.findById(itemId);
-        return itemOpt.orElseThrow(() -> new ItemNotFoundException(itemId));
     }
 
     private void setLastAndNextBooking(ItemWithAdditionalDataDto itemWithAdditionalDataDto, Booking lastBooking, Booking nextBooking) {

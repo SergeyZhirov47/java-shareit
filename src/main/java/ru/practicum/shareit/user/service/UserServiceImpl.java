@@ -7,12 +7,10 @@ import ru.practicum.shareit.user.dto.UserCreateDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.exception.EmailAlreadyUsedException;
-import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
@@ -24,7 +22,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getById(long id) {
-        return UserMapper.toUserDto(getUserById(id));
+        return UserMapper.toUserDto(userRepository.getUserById(id));
     }
 
     @Override
@@ -56,7 +54,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto update(long id, UserDto userDto) {
         // Получение и проверка, что пользователь есть.
-        final User user = getUserById(id);
+        final User user = userRepository.getUserById(id);
 
         // Формируем пользователя с измененными полями.
         final User changedUser = UserMapper.updateIfDifferent(user, userDto);
@@ -94,15 +92,5 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByEmail(email)) {
             throw new EmailAlreadyUsedException(String.format("Пользователь с email = %s уже существует!", email));
         }
-    }
-
-    private User getUserById(long id) {
-        final Optional<User> userOpt = userRepository.findById(id);
-
-        if (userOpt.isEmpty()) {
-            throw new UserNotFoundException(id);
-        }
-
-        return userOpt.get();
     }
 }

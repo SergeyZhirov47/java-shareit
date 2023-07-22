@@ -8,7 +8,7 @@ import ru.practicum.shareit.item.model.Item;
 import java.util.List;
 import java.util.Optional;
 
-public interface ItemRepository extends JpaRepository<Item, Long> {
+public interface ItemRepository extends JpaRepository<Item, Long>, ItemCustomRepository {
     Optional<Item> findByIdAndOwnerId(long id, long ownerId);
 
     List<Item> findByOwnerId(long ownerId);

@@ -15,7 +15,6 @@ import ru.practicum.shareit.booking.model.QBooking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.booking.validation.BookingDatesValidator;
 import ru.practicum.shareit.common.NotFoundException;
-import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
@@ -44,7 +43,7 @@ public class BookingServiceImpl implements BookingService {
 
         // Проверяем, что вещь существует.
         final long itemId = newBooking.getItemId();
-        final Item item = getItem(itemId);
+        final Item item = itemRepository.getItemById(itemId);
 
         // Валидация (начало и конец бронирования)
         validateBookingCreateDto(newBooking);
@@ -201,9 +200,6 @@ public class BookingServiceImpl implements BookingService {
         BookingDatesValidator.validate(start, end);
     }
 
-    // ToDo
-    // Практически один и тот же код... Как-то можно упростить?
-    // Вынести в какой-то отдельный класс? получение пользователя и вещи много где используется.
     private Booking getBooking(long bookingId) {
         final Optional<Booking> bookingOpt = bookingRepository.findById(bookingId);
 
@@ -212,15 +208,5 @@ public class BookingServiceImpl implements BookingService {
         }
 
         return bookingOpt.get();
-    }
-
-    private Item getItem(long itemId) {
-        final Optional<Item> itemOpt = itemRepository.findById(itemId);
-
-        if (itemOpt.isEmpty()) {
-            throw new ItemNotFoundException(itemId);
-        }
-
-        return itemOpt.get();
     }
 }
