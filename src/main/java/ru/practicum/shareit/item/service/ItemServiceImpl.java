@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
@@ -19,7 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
+import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.*;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 @Service
 @AllArgsConstructor
@@ -113,13 +116,25 @@ public class ItemServiceImpl implements ItemService {
             final Map<Long, Booking> lastBookings = bookingRepository.getLastBookingForItemsByIdList(itemIds, now);
             final Map<Long, Booking> nextBookings = bookingRepository.getNextBookingForItemsByIdList(itemIds, now);
 
-            // Установка последнего и последующего бронирования для каждого предмета.
+            // Получить комментарии для каждой вещи.
+            final Map<Long, List<Comment>> comments = commentRepository.findByItemIdIn(itemIds, Sort.by(DESC, "created"))
+                    .stream()
+                    .collect(groupingBy(c -> c.getItem().getId(), toList()));
+
+            // Установка последнего и последующего бронирования для каждого предмета, а также комментариев.
             for (final Item item : ownerItems) {
+                final long itemId = item.getId();
                 final ItemWithAdditionalDataDto itemWithAdditionalDataDto = ItemMapper.toItemWithAdditionalDataDto(item);
 
-                final Booking lastBooking = lastBookings.get(item.getId());
-                final Booking nextBooking = nextBookings.get(item.getId());
+                final Booking lastBooking = lastBookings.get(itemId);
+                final Booking nextBooking = nextBookings.get(itemId);
                 setLastAndNextBooking(itemWithAdditionalDataDto, lastBooking, nextBooking);
+
+                final List<Comment> commentsToItem = comments.get(itemId);
+                if (nonNull(commentsToItem)) {
+                    final List<CommentDto> commentDtoList = commentsToItem.stream().map(CommentMapper::toCommentDto).collect(toUnmodifiableList());
+                    itemWithAdditionalDataDto.setComments(commentDtoList);
+                }
 
                 ownerItemDto.add(itemWithAdditionalDataDto);
             }
