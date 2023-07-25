@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 
 import javax.validation.constraints.FutureOrPresent;
@@ -16,7 +15,6 @@ import static ru.practicum.shareit.common.ConstantParamStorage.INCOMING_DATE_FOR
 @Builder
 @Jacksonized
 @Data
-@RequiredArgsConstructor
 @AllArgsConstructor
 public class BookingCreateDto {
     @NotNull
