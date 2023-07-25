@@ -1,6 +1,6 @@
 package ru.practicum.shareit.item;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -10,12 +10,12 @@ import ru.practicum.shareit.item.service.ItemService;
 import javax.validation.Valid;
 import java.util.List;
 
-import static ru.practicum.shareit.common.RequestHeaderName.*;
+import static ru.practicum.shareit.common.RequestHeaderName.USER_ID_REQUEST_HEADER;
 
 @RestController
 @RequestMapping("/items")
 @Validated
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
 public class ItemController {
     private final ItemService itemService;
