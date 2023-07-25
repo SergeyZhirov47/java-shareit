@@ -3,6 +3,7 @@ package ru.practicum.shareit.user.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.user.dto.UserCreateDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
@@ -20,17 +21,20 @@ import static java.util.Objects.nonNull;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
+    @Transactional(readOnly = true)
     @Override
     public UserDto getById(long id) {
         return UserMapper.toUserDto(userRepository.getUserById(id));
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<UserDto> getAll() {
         final List<User> users = userRepository.findAll();
         return users.stream().map(UserMapper::toUserDto).collect(Collectors.toUnmodifiableList());
     }
 
+    @Transactional
     @Override
     public Long create(UserCreateDto userDto) {
         User user = UserMapper.toUser(userDto);
@@ -45,12 +49,14 @@ public class UserServiceImpl implements UserService {
         return user.getId();
     }
 
+    @Transactional
     @Override
     public UserDto createAndGet(UserCreateDto userDto) {
         final Long id = create(userDto);
         return getById(id);
     }
 
+    @Transactional
     @Override
     public UserDto update(long id, UserDto userDto) {
         // Получение и проверка, что пользователь есть.
@@ -77,6 +83,7 @@ public class UserServiceImpl implements UserService {
         return UserMapper.toUserDto(updatedUser);
     }
 
+    @Transactional
     @Override
     public void delete(long id) {
         // Потом наверное будут нужны доп. проверки.

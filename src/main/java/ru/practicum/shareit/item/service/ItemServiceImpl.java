@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
@@ -32,6 +33,7 @@ public class ItemServiceImpl implements ItemService {
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
 
+    @Transactional
     @Override
     public Long create(ItemCreateDto item, long ownerId) {
         final User owner = userRepository.getUserById(ownerId);
@@ -41,12 +43,14 @@ public class ItemServiceImpl implements ItemService {
         return itemEntity.getId();
     }
 
+    @Transactional
     @Override
     public ItemDto createAndGet(ItemCreateDto item, long ownerId) {
         final Long itemId = create(item, ownerId);
         return getOwnerItemById(itemId, ownerId);
     }
 
+    @Transactional
     @Override
     public ItemDto update(long id, ItemDto item, long ownerId) {
         itemRepository.checkItemExists(id);
@@ -68,6 +72,7 @@ public class ItemServiceImpl implements ItemService {
         return ItemMapper.toItemDto(updatedItem);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public ItemWithAdditionalDataDto getById(long id, long userId) {
         final Item item = itemRepository.getItemById(id);
@@ -91,6 +96,7 @@ public class ItemServiceImpl implements ItemService {
         return itemWithAdditionalDataDto;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public ItemDto getOwnerItemById(long itemId, long ownerId) {
         itemRepository.checkItemExists(itemId);
@@ -101,6 +107,7 @@ public class ItemServiceImpl implements ItemService {
         return ItemMapper.toItemDto(item);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<ItemWithAdditionalDataDto> getAllOwnerItems(long ownerId) {
         userRepository.checkUserExists(ownerId);
@@ -143,6 +150,7 @@ public class ItemServiceImpl implements ItemService {
         return ownerItemDto;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<ItemDto> searchItems(String text, long userId) {
         final String searchText = text.trim().toLowerCase();
@@ -155,6 +163,7 @@ public class ItemServiceImpl implements ItemService {
         return searchResult.stream().map(ItemMapper::toItemDto).collect(toUnmodifiableList());
     }
 
+    @Transactional
     @Override
     public CommentDto addComment(long itemId, long userId, CommentCreateDto commentDto) {
         final Item item = itemRepository.getItemById(itemId); // Проверяем (и получаем) существует ли вещь.

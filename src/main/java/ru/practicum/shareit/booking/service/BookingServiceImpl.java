@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingMapper;
@@ -32,6 +33,7 @@ public class BookingServiceImpl implements BookingService {
     //  Добавление нового запроса на бронирование.
     //  Запрос может быть создан любым пользователем, а затем подтверждён владельцем вещи.
     //  После создания запрос находится в статусе WAITING — «ожидает подтверждения».
+    @Transactional
     @Override
     public BookingDto create(BookingCreateDto newBooking, long userId) {
         // Проверяем, что пользователь существует.
@@ -67,6 +69,7 @@ public class BookingServiceImpl implements BookingService {
     // Подтверждение или отклонение запроса на бронирование.
     // Может быть выполнено только владельцем вещи.
     // Затем статус бронирования становится либо APPROVED, либо REJECTED
+    @Transactional
     @Override
     public BookingDto approve(long bookingId, long userId, boolean isApproved) {
         // Проверяем есть ли заявка на бронирование.
@@ -91,6 +94,7 @@ public class BookingServiceImpl implements BookingService {
 
     // Получение данных о конкретном бронировании (включая его статус).
     // Может быть выполнено либо автором бронирования, либо владельцем вещи, к которой относится бронирование.
+    @Transactional(readOnly = true)
     @Override
     public BookingDto getBooking(long id, long userId) {
         // Проверяем существует ли пользователь.
@@ -111,6 +115,7 @@ public class BookingServiceImpl implements BookingService {
 
     // Получение списка всех бронирований текущего пользователя (т.е список всех заявок на бронирование созданных данным пользователем).
     // Бронирования должны возвращаться отсортированными по дате от более новых к более старым.
+    @Transactional(readOnly = true)
     @Override
     public List<BookingDto> getUserBookingsByState(long userId, BookingStateForSearch searchState) {
         // Проверяем существует ли пользователь.
@@ -128,6 +133,7 @@ public class BookingServiceImpl implements BookingService {
     // Получение списка бронирований для всех вещей текущего пользователя. (т.е все заявки на бронирование вещей данного пользователя).
     // Этот запрос имеет смысл для владельца хотя бы одной вещи.
     // Работа параметра state аналогична его работе в предыдущем сценарии.
+    @Transactional(readOnly = true)
     @Override
     public List<BookingDto> getBookingsByItemOwner(long ownerId, BookingStateForSearch searchState) {
         // Проверяем существует ли пользователь.
