@@ -3,6 +3,8 @@ package ru.practicum.shareit.booking.dto;
 import lombok.experimental.UtilityClass;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.common.AbstractMapper;
+import ru.practicum.shareit.item.dto.ItemMapper;
+import ru.practicum.shareit.user.dto.UserMapper;
 
 import static java.util.Objects.isNull;
 
@@ -15,8 +17,8 @@ public class BookingMapper extends AbstractMapper {
                 .id(booking.getId())
                 .start(booking.getStart())
                 .end(booking.getEnd())
-                .item(booking.getItem())
-                .booker(booking.getBooker())
+                .item(ItemMapper.toItemDto(booking.getItem()))
+                .booker(UserMapper.toUserDto(booking.getBooker()))
                 .status(booking.getStatus())
                 .build();
     }
