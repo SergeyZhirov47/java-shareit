@@ -5,20 +5,21 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
+import ru.practicum.shareit.booking.dto.BookingForItemDto;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Builder
 @Jacksonized
 @Data
 @AllArgsConstructor
-public class ItemCreateDto {
-    @NotBlank
+public class ItemWithAdditionalDataDto {
+    private Long id;
     private String name;
-    @NotBlank
     private String description;
-    @NotNull
     @JsonProperty("available")
     private Boolean isAvailable;
+    private BookingForItemDto lastBooking;
+    private BookingForItemDto nextBooking;
+    private List<CommentDto> comments;
 }

@@ -1,56 +1,66 @@
 package ru.practicum.shareit.user.service;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.user.dto.UserCreateDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.exception.EmailAlreadyUsedException;
-import ru.practicum.shareit.user.exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
+    @Transactional(readOnly = true)
     @Override
     public UserDto getById(long id) {
-        return UserMapper.toUserDto(getUserById(id));
+        return UserMapper.toUserDto(userRepository.getUserById(id));
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<UserDto> getAll() {
-        final List<User> users = userRepository.getAll();
+        final List<User> users = userRepository.findAll();
         return users.stream().map(UserMapper::toUserDto).collect(Collectors.toUnmodifiableList());
     }
 
+    @Transactional
     @Override
     public Long create(UserCreateDto userDto) {
-        // Проверка, что еще нет пользователя с таким email.
-        checkExistsUserEmail(userDto.getEmail());
+        User user = UserMapper.toUser(userDto);
 
-        final User user = UserMapper.toUser(userDto);
-        return userRepository.create(user);
+        // По тестам postman получается, что теперь БД будет "проверять" уникальность email.
+        try {
+            user = userRepository.save(user);
+        } catch (DataIntegrityViolationException exp) {
+            throw new EmailAlreadyUsedException(String.format("Пользователь с email = %s уже существует!", user.getEmail()));
+        }
+
+        return user.getId();
     }
 
+    @Transactional
     @Override
     public UserDto createAndGet(UserCreateDto userDto) {
         final Long id = create(userDto);
         return getById(id);
     }
 
+    @Transactional
     @Override
     public UserDto update(long id, UserDto userDto) {
         // Получение и проверка, что пользователь есть.
-        final User user = getUserById(id);
+        final User user = userRepository.getUserById(id);
 
         // Формируем пользователя с измененными полями.
         final User changedUser = UserMapper.updateIfDifferent(user, userDto);
@@ -67,17 +77,18 @@ public class UserServiceImpl implements UserService {
                 checkExistsUserEmail(newEmail);
             }
 
-            updatedUser = userRepository.update(changedUser);
+            updatedUser = userRepository.save(changedUser);
         }
 
         return UserMapper.toUserDto(updatedUser);
     }
 
+    @Transactional
     @Override
     public void delete(long id) {
         // Потом наверное будут нужны доп. проверки.
         // Нельзя удалять пользователя, у которого есть вещи. Ну вещи есть, но они не используются.
-        userRepository.delete(id);
+        userRepository.deleteById(id);
     }
 
     private boolean checkNotBlankEmail(final String email) {
@@ -85,18 +96,8 @@ public class UserServiceImpl implements UserService {
     }
 
     private void checkExistsUserEmail(final String email) {
-        if (userRepository.containsByEmail(email)) {
+        if (userRepository.existsByEmail(email)) {
             throw new EmailAlreadyUsedException(String.format("Пользователь с email = %s уже существует!", email));
         }
-    }
-
-    private User getUserById(long id) {
-        final Optional<User> userOpt = userRepository.findById(id);
-
-        if (userOpt.isEmpty()) {
-            throw new UserNotFoundException(id);
-        }
-
-        return userOpt.get();
     }
 }
