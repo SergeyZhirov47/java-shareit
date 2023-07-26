@@ -17,7 +17,6 @@ import static ru.practicum.shareit.common.ConstantParamStorage.USER_ID_REQUEST_H
 
 @RestController
 @RequestMapping(path = "/bookings")
-@Validated
 @RequiredArgsConstructor
 @Slf4j
 public class BookingController {

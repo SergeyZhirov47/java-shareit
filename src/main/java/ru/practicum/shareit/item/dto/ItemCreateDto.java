@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 @Builder
@@ -14,9 +14,9 @@ import javax.validation.constraints.NotNull;
 @Data
 @AllArgsConstructor
 public class ItemCreateDto {
-    @NotEmpty
+    @NotBlank
     private String name;
-    @NotEmpty
+    @NotBlank
     private String description;
     @NotNull
     @JsonProperty("available")
