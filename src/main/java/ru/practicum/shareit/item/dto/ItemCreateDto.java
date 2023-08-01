@@ -21,4 +21,5 @@ public class ItemCreateDto {
     @NotNull
     @JsonProperty("available")
     private Boolean isAvailable;
+    private Long requestId;
 }

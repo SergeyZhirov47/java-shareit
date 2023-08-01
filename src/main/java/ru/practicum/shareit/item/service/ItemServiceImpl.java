@@ -13,6 +13,9 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -32,12 +35,25 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Transactional
     @Override
     public Long create(ItemCreateDto item, long ownerId) {
         final User owner = userRepository.getUserById(ownerId);
-        Item itemEntity = ItemMapper.toItem(item, owner);
+
+        // ToDo
+        // 1. Получение заявки на вещь и проброс исключения вынести в репозиторий.
+        ItemRequest itemRequest = null;
+        final Long requestId = item.getRequestId();
+        if (nonNull(requestId)) {
+            itemRequest = itemRequestRepository.findById(requestId)
+                    .orElseThrow(() -> new ItemRequestNotFoundException(requestId));
+        }
+
+        Item itemEntity = ItemMapper.toItem(item);
+        itemEntity.setOwner(owner);
+        itemEntity.setRequest(itemRequest);
         itemEntity = itemRepository.save(itemEntity);
 
         return itemEntity.getId();
