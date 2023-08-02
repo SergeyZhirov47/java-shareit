@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.service.ItemRequestService;
+import ru.practicum.shareit.user.repository.UserRepository;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
@@ -22,6 +23,7 @@ import static ru.practicum.shareit.common.ConstantParamStorage.USER_ID_REQUEST_H
 @Slf4j
 public class ItemRequestController {
     private final ItemRequestService itemRequestService;
+    private final UserRepository userRepository;
 
     // добавить новый запрос вещи
     @PostMapping
@@ -61,6 +63,7 @@ public class ItemRequestController {
     public ItemRequestDto getItemRequest(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
                                          @PathVariable(name = "requestId") long requestId) {
         log.info(String.format("POST /requests/{requestId}, {requestId} = %s, %s = %s", requestId, USER_ID_REQUEST_HEADER, userId));
+        userRepository.checkUserExists(userId);
         final ItemRequestDto itemRequestDto = itemRequestService.getItemRequestById(requestId);
         log.info(String.format("Успешно получен заявка на вещь. Id заявки = %S", itemRequestDto.getId()));
 

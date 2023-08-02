@@ -1,7 +1,6 @@
 package ru.practicum.shareit.request.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -19,10 +18,8 @@ import ru.practicum.shareit.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
-import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +59,8 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Transactional(readOnly = true)
     @Override
     public List<ItemRequestDto> getAllItemRequests(long userId, Integer from, Integer size) {
+        userRepository.checkUserExists(userId);
+
         List<ItemRequest> itemRequests;
 
         if (nonNull(from) && nonNull(size)) {
@@ -81,8 +80,8 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     private ItemRequest getById(long id) {
-       final Optional<ItemRequest> itemRequest =  itemRequestRepository.findById(id);
-       return itemRequest.orElseThrow(() -> new ItemRequestNotFoundException(id));
+        final Optional<ItemRequest> itemRequest = itemRequestRepository.findById(id);
+        return itemRequest.orElseThrow(() -> new ItemRequestNotFoundException(id));
     }
 
     private ItemRequest createModel(ItemRequestCreateDto itemRequest, long userId) {
