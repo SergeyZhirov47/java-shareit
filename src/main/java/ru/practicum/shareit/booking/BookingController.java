@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -10,12 +11,15 @@ import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.booking.validation.BookingStateForSearchValidator;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 import static ru.practicum.shareit.common.ConstantParamStorage.USER_ID_REQUEST_HEADER;
 
 @RestController
 @RequestMapping(path = "/bookings")
+@Validated
 @RequiredArgsConstructor
 @Slf4j
 public class BookingController {
@@ -57,10 +61,13 @@ public class BookingController {
     // Бронирования должны возвращаться отсортированными по дате от более новых к более старым.
     @GetMapping
     public List<BookingDto> getUserBookingsByState(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
-                                                   @RequestParam(name = "state", required = false) String stateStr) {
-        log.info(String.format("GET /bookings?state={state}, {state} = %s, %s = %s", stateStr, USER_ID_REQUEST_HEADER, userId));
+                                                   @RequestParam(name = "state", required = false) String stateStr,
+                                                   @Valid @PositiveOrZero @RequestParam(name = "from", required = false) Integer from,
+                                                   @Valid @Positive @RequestParam(name = "size", required = false) Integer size) {
+        final String logStr = "GET /bookings?state={state}&from={from}&size={size}, {state} = %s, {from} = %s, {size} = %s, %s = %s";
+        log.info(String.format(logStr, stateStr, from, size, USER_ID_REQUEST_HEADER, userId));
         final BookingStateForSearch state = BookingStateForSearchValidator.validateAndGet(stateStr);
-        final List<BookingDto> userBookings = bookingService.getUserBookingsByState(userId, state);
+        final List<BookingDto> userBookings = bookingService.getUserBookingsByState(userId, state, from, size);
         log.info(String.format("Список всех заявок на бронирование, созданных пользователем id = %s успешно получен", userId));
 
         return userBookings;
@@ -69,10 +76,13 @@ public class BookingController {
     // Получение списка бронирований для всех вещей текущего пользователя. (т.е все заявки на бронирование вещей данного пользователя.)
     @GetMapping("/owner")
     public List<BookingDto> getBookingsByItemOwner(@RequestHeader(USER_ID_REQUEST_HEADER) long ownerId,
-                                                   @RequestParam(name = "state", required = false) String stateStr) {
-        log.info(String.format("GET /bookings/owner?state={state}, {state} = %s, %s = %s", stateStr, USER_ID_REQUEST_HEADER, ownerId));
+                                                   @RequestParam(name = "state", required = false) String stateStr,
+                                                   @Valid @PositiveOrZero @RequestParam(name = "from", required = false) Integer from,
+                                                   @Valid @Positive @RequestParam(name = "size", required = false) Integer size) {
+        final String logStr = "GET /bookings/owner?state={state}&from={from}&size={size}, {state} = %s, {from} = %s, {size} = %s, %s = %s";
+        log.info(String.format(logStr, stateStr, from, size, USER_ID_REQUEST_HEADER, ownerId));
         final BookingStateForSearch state = BookingStateForSearchValidator.validateAndGet(stateStr);
-        final List<BookingDto> ownerBookings = bookingService.getBookingsByItemOwner(ownerId, state);
+        final List<BookingDto> ownerBookings = bookingService.getBookingsByItemOwner(ownerId, state, from, size);
         log.info(String.format("Список всех заявок на бронирование вещей пользователя id = %s успешно получен", ownerId));
 
         return ownerBookings;

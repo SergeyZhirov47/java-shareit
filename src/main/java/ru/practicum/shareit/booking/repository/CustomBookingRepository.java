@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.repository;
 
+import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStateForSearch;
 
@@ -23,4 +24,8 @@ public interface CustomBookingRepository {
     List<Booking> getUserBookingsByState(long userId, BookingStateForSearch searchState);
 
     List<Booking> getBookingsByItemOwner(long ownerId, BookingStateForSearch searchState);
+
+    List<Booking> getUserBookingsByState(long userId, BookingStateForSearch searchState, Pageable pageable);
+
+    List<Booking> getBookingsByItemOwner(long ownerId, BookingStateForSearch searchState, Pageable pageable);
 }

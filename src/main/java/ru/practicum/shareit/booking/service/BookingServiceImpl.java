@@ -1,6 +1,8 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
@@ -21,7 +23,8 @@ import ru.practicum.shareit.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
+import static java.util.Objects.nonNull;
 
 @Service
 @RequiredArgsConstructor
@@ -122,12 +125,7 @@ public class BookingServiceImpl implements BookingService {
         userRepository.checkUserExists(userId);
 
         final List<Booking> userBookings = bookingRepository.getUserBookingsByState(userId, searchState);
-
-        final List<BookingDto> userBookingsDto = userBookings.stream()
-                .map(BookingMapper::toBookingDto)
-                .collect(Collectors.toUnmodifiableList());
-
-        return userBookingsDto;
+        return BookingMapper.toBookingDtoList(userBookings);
     }
 
     // Получение списка бронирований для всех вещей текущего пользователя. (т.е все заявки на бронирование вещей данного пользователя).
@@ -140,11 +138,37 @@ public class BookingServiceImpl implements BookingService {
         userRepository.checkUserExists(ownerId);
 
         final List<Booking> bookingsByOwner = bookingRepository.getBookingsByItemOwner(ownerId, searchState);
-        final List<BookingDto> bookingsByOwnerDto = bookingsByOwner.stream()
-                .map(BookingMapper::toBookingDto)
-                .collect(Collectors.toUnmodifiableList());
+        return BookingMapper.toBookingDtoList(bookingsByOwner);
+    }
 
-        return bookingsByOwnerDto;
+    @Transactional(readOnly = true)
+    @Override
+    public List<BookingDto> getUserBookingsByState(long userId, BookingStateForSearch searchState, Integer from, Integer size) {
+        // Проверяем существует ли пользователь.
+        userRepository.checkUserExists(userId);
+
+        Pageable pageable = null;
+        if (nonNull(from) && nonNull(size)) {
+            pageable = PageRequest.of(from, size);
+        }
+
+        final List<Booking> userBookings = bookingRepository.getUserBookingsByState(userId, searchState, pageable);
+        return BookingMapper.toBookingDtoList(userBookings);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<BookingDto> getBookingsByItemOwner(long ownerId, BookingStateForSearch searchState, Integer from, Integer size) {
+        // Проверяем существует ли пользователь.
+        userRepository.checkUserExists(ownerId);
+
+        Pageable pageable = null;
+        if (nonNull(from) && nonNull(size)) {
+            pageable = PageRequest.of(from, size);
+        }
+
+        final List<Booking> bookingsByOwner = bookingRepository.getBookingsByItemOwner(ownerId, searchState, pageable);
+        return BookingMapper.toBookingDtoList(bookingsByOwner);
     }
 
     private void validateBookingCreateDto(BookingCreateDto bookingCreateDto) {
