@@ -15,6 +15,7 @@ import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.booking.validation.BookingDatesValidator;
 import ru.practicum.shareit.common.NotFoundException;
+import ru.practicum.shareit.common.OffsetBasedPageRequest;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
@@ -149,7 +150,7 @@ public class BookingServiceImpl implements BookingService {
 
         Pageable pageable = null;
         if (nonNull(from) && nonNull(size)) {
-            pageable = PageRequest.of(from, size);
+            pageable = new OffsetBasedPageRequest(from, size);
         }
 
         final List<Booking> userBookings = bookingRepository.getUserBookingsByState(userId, searchState, pageable);
@@ -164,7 +165,7 @@ public class BookingServiceImpl implements BookingService {
 
         Pageable pageable = null;
         if (nonNull(from) && nonNull(size)) {
-            pageable = PageRequest.of(from, size);
+            pageable = new OffsetBasedPageRequest(from, size);
         }
 
         final List<Booking> bookingsByOwner = bookingRepository.getBookingsByItemOwner(ownerId, searchState, pageable);

@@ -1,11 +1,11 @@
 package ru.practicum.shareit.request.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.common.OffsetBasedPageRequest;
 import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestMapper;
@@ -64,7 +64,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         List<ItemRequest> itemRequests;
 
         if (nonNull(from) && nonNull(size)) {
-            final Pageable pageAndSortedByCreated = PageRequest.of(from, size, itemRequestCreatedSort.descending());
+            final Pageable pageAndSortedByCreated = new OffsetBasedPageRequest(from, size, itemRequestCreatedSort.descending());
             itemRequests = itemRequestRepository.findByRequestorIdNot(userId, pageAndSortedByCreated);
         } else {
             itemRequests = itemRequestRepository.findByRequestorIdNot(userId, itemRequestCreatedSort.descending());
