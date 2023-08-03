@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,12 +22,15 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.*;
+import static org.apache.logging.log4j.util.Strings.isBlank;
 import static org.springframework.data.domain.Sort.Direction.DESC;
+import static ru.practicum.shareit.common.Utils.createOffsetBasedPageRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -75,7 +79,6 @@ public class ItemServiceImpl implements ItemService {
 
         // Обновление
         final Item itemFromRepo = itemRepository.getByIdAndOwnerId(id, ownerId);
-
         final Item changedItem = ItemMapper.updateIfDifferent(itemFromRepo, item);
 
         Item updatedItem;
@@ -126,57 +129,84 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(readOnly = true)
     @Override
     public List<ItemWithAdditionalDataDto> getAllOwnerItems(long ownerId) {
+        return getAllOwnerItems(ownerId, null);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<ItemWithAdditionalDataDto> getAllOwnerItems(long ownerId, Integer from, Integer size) {
+        return getAllOwnerItems(ownerId, createOffsetBasedPageRequest(from, size));
+    }
+
+    @Transactional(readOnly = true)
+    private List<ItemWithAdditionalDataDto> getAllOwnerItems(long ownerId, Pageable pageable) {
         userRepository.checkUserExists(ownerId);
 
-        final List<Item> ownerItems = itemRepository.findByOwnerId(ownerId);
-        final List<ItemWithAdditionalDataDto> ownerItemDto = new ArrayList<>();
+        final List<Item> ownerItems = itemRepository.findByOwnerId(ownerId, pageable);
+        final List<ItemWithAdditionalDataDto> ownerItemDtoList = new ArrayList<>();
 
-        if (!ownerItems.isEmpty()) {
-            final List<Long> itemIds = ownerItems.stream().map(Item::getId).collect(toUnmodifiableList());
-
-            // Получение последнего и последующего бронирования для каждого предмета.
-            final LocalDateTime now = LocalDateTime.now();
-            final Map<Long, Booking> lastBookings = bookingRepository.getLastBookingForItemsByIdList(itemIds, now);
-            final Map<Long, Booking> nextBookings = bookingRepository.getNextBookingForItemsByIdList(itemIds, now);
-
-            // Получить комментарии для каждой вещи.
-            final Map<Long, List<Comment>> comments = commentRepository.findByItemIdIn(itemIds, Sort.by(DESC, "created"))
-                    .stream()
-                    .collect(groupingBy(c -> c.getItem().getId(), toList()));
-
-            // Установка последнего и последующего бронирования для каждого предмета, а также комментариев.
-            for (final Item item : ownerItems) {
-                final long itemId = item.getId();
-                final ItemWithAdditionalDataDto itemWithAdditionalDataDto = ItemMapper.toItemWithAdditionalDataDto(item);
-
-                final Booking lastBooking = lastBookings.get(itemId);
-                final Booking nextBooking = nextBookings.get(itemId);
-                setLastAndNextBooking(itemWithAdditionalDataDto, lastBooking, nextBooking);
-
-                final List<Comment> commentsToItem = comments.get(itemId);
-                if (nonNull(commentsToItem)) {
-                    final List<CommentDto> commentDtoList = commentsToItem.stream().map(CommentMapper::toCommentDto).collect(toUnmodifiableList());
-                    itemWithAdditionalDataDto.setComments(commentDtoList);
-                }
-
-                ownerItemDto.add(itemWithAdditionalDataDto);
-            }
+        if (ownerItems.isEmpty()) {
+            return ownerItemDtoList;
         }
 
-        return ownerItemDto;
+        final List<Long> itemIds = ownerItems.stream().map(Item::getId).collect(toUnmodifiableList());
+
+        // Получение последнего и последующего бронирования для каждого предмета.
+        final LocalDateTime now = LocalDateTime.now();
+        final Map<Long, Booking> lastBookings = bookingRepository.getLastBookingForItemsByIdList(itemIds, now);
+        final Map<Long, Booking> nextBookings = bookingRepository.getNextBookingForItemsByIdList(itemIds, now);
+
+        // Получить комментарии для каждой вещи.
+        final Map<Long, List<Comment>> comments = commentRepository.findByItemIdIn(itemIds, Sort.by(DESC, "created"))
+                .stream()
+                .collect(groupingBy(c -> c.getItem().getId(), toList()));
+
+        // Установка последнего и последующего бронирования для каждого предмета, а также комментариев.
+        for (final Item item : ownerItems) {
+            final long itemId = item.getId();
+            final ItemWithAdditionalDataDto itemWithAdditionalDataDto = ItemMapper.toItemWithAdditionalDataDto(item);
+
+            final Booking lastBooking = lastBookings.get(itemId);
+            final Booking nextBooking = nextBookings.get(itemId);
+            setLastAndNextBooking(itemWithAdditionalDataDto, lastBooking, nextBooking);
+
+            final List<Comment> commentsToItem = comments.get(itemId);
+            if (nonNull(commentsToItem)) {
+                final List<CommentDto> commentDtoList = commentsToItem.stream().map(CommentMapper::toCommentDto).collect(toUnmodifiableList());
+                itemWithAdditionalDataDto.setComments(commentDtoList);
+            }
+
+            ownerItemDtoList.add(itemWithAdditionalDataDto);
+        }
+
+        return ownerItemDtoList;
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<ItemDto> searchItems(String text, long userId) {
-        final String searchText = text.trim().toLowerCase();
+        return searchItems(text, userId, null);
+    }
 
-        List<Item> searchResult = new ArrayList<>();
-        if (!searchText.isEmpty()) {
-            searchResult = itemRepository.findAvailableByNameOrDescription(searchText);
+    @Transactional(readOnly = true)
+    @Override
+    public List<ItemDto> searchItems(String text, long userId, Integer from, Integer size) {
+        return searchItems(text, userId, createOffsetBasedPageRequest(from, size));
+    }
+
+    @Transactional(readOnly = true)
+    private List<ItemDto> searchItems(String text, long userId, Pageable pageable) {
+        userRepository.checkUserExists(userId);
+
+        if (isBlank(text)) {
+            return Collections.emptyList();
         }
 
-        return searchResult.stream().map(ItemMapper::toItemDto).collect(toUnmodifiableList());
+        final String searchText = text.trim().toLowerCase();
+        return itemRepository.findAvailableByNameOrDescription(searchText, pageable)
+                .stream()
+                .map(ItemMapper::toItemDto)
+                .collect(toUnmodifiableList());
     }
 
     @Transactional

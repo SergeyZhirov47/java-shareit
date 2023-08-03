@@ -8,6 +8,9 @@ import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 import static ru.practicum.shareit.common.ConstantParamStorage.USER_ID_REQUEST_HEADER;
@@ -55,9 +58,11 @@ public class ItemController {
 
     // Просмотр владельцем списка всех его вещей с указанием названия и описания для каждой
     @GetMapping
-    public List<ItemWithAdditionalDataDto> getAllOwnerItems(@RequestHeader(USER_ID_REQUEST_HEADER) long ownerId) {
-        log.info(String.format("GET /items, %s = %s", USER_ID_REQUEST_HEADER, ownerId));
-        final List<ItemWithAdditionalDataDto> ownerItems = itemService.getAllOwnerItems(ownerId);
+    public List<ItemWithAdditionalDataDto> getAllOwnerItems(@RequestHeader(USER_ID_REQUEST_HEADER) long ownerId,
+                                                            @PositiveOrZero @RequestParam(name = "from", required = false) Integer from,
+                                                            @Positive @RequestParam(name = "size", required = false) Integer size) {
+        log.info(String.format("GET /items?from={from}&size={size}, {from} = %s, {size} = %s, %s = %s", from, size, USER_ID_REQUEST_HEADER, ownerId));
+        final List<ItemWithAdditionalDataDto> ownerItems = itemService.getAllOwnerItems(ownerId, from, size);
         log.info(String.format("Успешно получены вещи (%s штук) пользователя с id = %s", ownerItems.size(), ownerId));
 
         return ownerItems;
@@ -67,9 +72,12 @@ public class ItemController {
     // Пользователь передаёт в строке запроса текст, и система ищет вещи, содержащие этот текст в названии или описании
     @GetMapping("/search")
     public List<ItemDto> searchItems(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
-                                     @RequestParam(name = "text") String text) {
-        log.info(String.format("GET /items/search?text=text, text = %s, %s = %s", text, USER_ID_REQUEST_HEADER, userId));
-        final List<ItemDto> searchedItems = itemService.searchItems(text, userId);
+                                     @RequestParam(name = "text") String text,
+                                     @PositiveOrZero @RequestParam(name = "from", required = false) Integer from,
+                                     @Positive @RequestParam(name = "size", required = false) Integer size) {
+        final String logStr = "GET /items/search?text=text&from={from}&size={size}, text = %s, {from} = %s, {size} = %s, %s = %s";
+        log.info(String.format(logStr, text, from, size, USER_ID_REQUEST_HEADER, userId));
+        final List<ItemDto> searchedItems = itemService.searchItems(text, userId, from, size);
         log.info(String.format("Успешно получены вещи (%s штук) по запросу \"%s\" пользователя с id = %s", searchedItems.size(), text, userId));
 
         return searchedItems;
