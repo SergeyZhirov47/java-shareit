@@ -1,8 +1,6 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
@@ -15,7 +13,6 @@ import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.booking.validation.BookingDatesValidator;
 import ru.practicum.shareit.common.NotFoundException;
-import ru.practicum.shareit.common.OffsetBasedPageRequest;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
@@ -25,7 +22,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static java.util.Objects.nonNull;
+import static ru.practicum.shareit.common.Utils.createOffsetBasedPageRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -148,12 +145,7 @@ public class BookingServiceImpl implements BookingService {
         // Проверяем существует ли пользователь.
         userRepository.checkUserExists(userId);
 
-        Pageable pageable = null;
-        if (nonNull(from) && nonNull(size)) {
-            pageable = new OffsetBasedPageRequest(from, size);
-        }
-
-        final List<Booking> userBookings = bookingRepository.getUserBookingsByState(userId, searchState, pageable);
+        final List<Booking> userBookings = bookingRepository.getUserBookingsByState(userId, searchState, createOffsetBasedPageRequest(from, size));
         return BookingMapper.toBookingDtoList(userBookings);
     }
 
@@ -163,12 +155,7 @@ public class BookingServiceImpl implements BookingService {
         // Проверяем существует ли пользователь.
         userRepository.checkUserExists(ownerId);
 
-        Pageable pageable = null;
-        if (nonNull(from) && nonNull(size)) {
-            pageable = new OffsetBasedPageRequest(from, size);
-        }
-
-        final List<Booking> bookingsByOwner = bookingRepository.getBookingsByItemOwner(ownerId, searchState, pageable);
+        final List<Booking> bookingsByOwner = bookingRepository.getBookingsByItemOwner(ownerId, searchState, createOffsetBasedPageRequest(from, size));
         return BookingMapper.toBookingDtoList(bookingsByOwner);
     }
 

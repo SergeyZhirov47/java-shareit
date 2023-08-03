@@ -49,8 +49,8 @@ public class ItemRequestController {
     // Получить список запросов, созданных другими пользователями
     @GetMapping("/all")
     public List<ItemRequestDto> getAllItemRequests(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
-                                                   @Valid @PositiveOrZero @RequestParam(name = "from", required = false) Integer from,
-                                                   @Valid @Positive @RequestParam(name = "size", required = false) Integer size) {
+                                                   @PositiveOrZero @RequestParam(name = "from", required = false) Integer from,
+                                                   @Positive @RequestParam(name = "size", required = false) Integer size) {
         log.info(String.format("POST /requests/all?from={from}&size={size}, {from} = %s, {size} = %s, %s = %s", from, size, USER_ID_REQUEST_HEADER, userId));
         final List<ItemRequestDto> itemRequests = itemRequestService.getAllItemRequests(userId, from, size);
         log.info(String.format("Успешно получены заявки на вещи. Их кол-во %s", itemRequests.size()));
