@@ -13,6 +13,7 @@ import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.repository.DAOUser;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
@@ -25,7 +26,7 @@ import static java.util.Objects.nonNull;
 @RequiredArgsConstructor
 public class ItemRequestServiceImpl implements ItemRequestService {
     private final ItemRequestRepository itemRequestRepository;
-    private final UserRepository userRepository;
+    private final DAOUser userRepository;
 
     private final Sort itemRequestCreatedSort = Sort.by("created");
 

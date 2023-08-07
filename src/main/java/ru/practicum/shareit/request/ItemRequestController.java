@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.service.ItemRequestService;
+import ru.practicum.shareit.user.repository.DAOUser;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import javax.validation.Valid;
@@ -23,7 +24,7 @@ import static ru.practicum.shareit.common.ConstantParamStorage.USER_ID_REQUEST_H
 @Slf4j
 public class ItemRequestController {
     private final ItemRequestService itemRequestService;
-    private final UserRepository userRepository;
+    private final DAOUser userRepository;
 
     // добавить новый запрос вещи
     @PostMapping
