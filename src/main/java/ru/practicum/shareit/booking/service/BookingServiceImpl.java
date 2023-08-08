@@ -14,9 +14,9 @@ import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.booking.validation.BookingDatesValidator;
 import ru.practicum.shareit.common.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.repository.DAOItem;
+import ru.practicum.shareit.item.repository.DaoItem;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.DAOUser;
+import ru.practicum.shareit.user.repository.DaoUser;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,8 +28,8 @@ import static ru.practicum.shareit.common.Utils.createOffsetBasedPageRequest;
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
-    private final DAOUser userRepository;
-    private final DAOItem itemRepository;
+    private final DaoUser userRepository;
+    private final DaoItem itemRepository;
 
     //  Добавление нового запроса на бронирование.
     //  Запрос может быть создан любым пользователем, а затем подтверждён владельцем вещи.

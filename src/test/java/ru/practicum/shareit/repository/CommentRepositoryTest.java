@@ -17,7 +17,17 @@ public class CommentRepositoryTest {
     private TestEntityManager em;
 
     @Test
-    public void test() {
+    public void findByItemId() {
+
+    }
+
+    @Test
+    public void findByItemIdIn() {
+
+    }
+
+    @Test
+    public void findByItemIdInWithSort() {
 
     }
 }

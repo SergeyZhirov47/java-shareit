@@ -6,7 +6,7 @@ import ru.practicum.shareit.user.model.User;
 import java.util.List;
 
 @Repository
-public interface DAOUser {
+public interface DaoUser {
     User getUserById(long id);
 
     void checkUserExists(long id);
@@ -16,6 +16,8 @@ public interface DAOUser {
     User save(User entity);
 
     boolean existsByEmail(String email);
+
+    boolean existsById(long id);
 
     void deleteById(long id);
 

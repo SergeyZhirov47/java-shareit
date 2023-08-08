@@ -13,12 +13,12 @@ import ru.practicum.shareit.item.exception.NotOwnerAccessException;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
-import ru.practicum.shareit.item.repository.DAOItem;
+import ru.practicum.shareit.item.repository.DaoItem;
 import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.DAOUser;
+import ru.practicum.shareit.user.repository.DaoUser;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -35,8 +35,8 @@ import static ru.practicum.shareit.common.Utils.createOffsetBasedPageRequest;
 @Service
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
-    private final DAOItem itemRepository;
-    private final DAOUser userRepository;
+    private final DaoItem itemRepository;
+    private final DaoUser userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
     private final ItemRequestRepository itemRequestRepository;

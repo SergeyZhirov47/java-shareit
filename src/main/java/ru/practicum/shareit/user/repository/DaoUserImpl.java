@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
-public class DAOUserImpl implements DAOUser {
+public class DaoUserImpl implements DaoUser {
     private final UserRepository userRepository;
 
     @Override
@@ -39,6 +39,11 @@ public class DAOUserImpl implements DAOUser {
     @Override
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    @Override
+    public boolean existsById(long id) {
+        return userRepository.existsById(id);
     }
 
     @Override

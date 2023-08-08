@@ -9,8 +9,7 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.exception.EmailAlreadyUsedException;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.DAOUser;
-import ru.practicum.shareit.user.repository.UserRepository;
+import ru.practicum.shareit.user.repository.DaoUser;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,7 +19,7 @@ import static java.util.Objects.nonNull;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final DAOUser userRepository;
+    private final DaoUser userRepository;
 
     @Transactional(readOnly = true)
     @Override

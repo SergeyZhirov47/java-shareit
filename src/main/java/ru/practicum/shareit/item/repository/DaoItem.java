@@ -5,17 +5,16 @@ import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
-public interface DAOItem {
-    Optional<Item> findByIdAndOwnerId(long id, long ownerId);
-
+public interface DaoItem {
     List<Item> findByOwnerId(long ownerId);
 
     List<Item> findByOwnerId(long ownerId, Pageable pageable);
 
     boolean existsByIdAndOwnerId(long itemId, long userId);
+
+    Item getByIdAndOwnerId(long itemId, long ownerId);
 
     List<Item> findAvailableByNameOrDescription(String text);
 
@@ -23,9 +22,13 @@ public interface DAOItem {
 
     Item getItemById(long id);
 
+    boolean existsById(long id);
+
     void checkItemExists(long id);
 
-    Item getByIdAndOwnerId(long id, long ownerId);
-
     Item save(Item entity);
+
+    List<Item> findAll();
+
+    void deleteAll();
 }

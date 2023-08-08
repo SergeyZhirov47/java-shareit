@@ -20,9 +20,9 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     boolean existsByIdAndOwnerId(long itemId, long userId);
 
-    @Query("SELECT it FROM Item as it WHERE it.isAvailable = true AND (lower(it.name) LIKE %:searchText% OR lower(it.description) LIKE %:searchText%)")
+    @Query("SELECT it FROM Item as it WHERE it.isAvailable = true AND (lower(it.name) LIKE lower(concat('%', :searchText,'%')) OR lower(it.description) LIKE lower(concat('%', :searchText,'%')))")
     List<Item> findAvailableByNameOrDescription(@Param("searchText") String text);
 
-    @Query("SELECT it FROM Item as it WHERE it.isAvailable = true AND (lower(it.name) LIKE %:searchText% OR lower(it.description) LIKE %:searchText%)")
+    @Query("SELECT it FROM Item as it WHERE it.isAvailable = true AND (lower(it.name) LIKE lower(concat('%', :searchText,'%')) OR lower(it.description) LIKE lower(concat('%', :searchText,'%')))")
     List<Item> findAvailableByNameOrDescription(@Param("searchText") String text, Pageable pageable);
 }

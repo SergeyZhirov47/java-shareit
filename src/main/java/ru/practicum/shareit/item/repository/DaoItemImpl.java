@@ -11,13 +11,8 @@ import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
-public class DAOItemImpl implements DAOItem {
+public class DaoItemImpl implements DaoItem {
     private final ItemRepository itemRepository;
-
-    @Override
-    public Optional<Item> findByIdAndOwnerId(long id, long ownerId) {
-        return itemRepository.findByIdAndOwnerId(id, ownerId);
-    }
 
     @Override
     public List<Item> findByOwnerId(long ownerId) {
@@ -50,9 +45,24 @@ public class DAOItemImpl implements DAOItem {
     }
 
     @Override
+    public List<Item> findAll() {
+        return itemRepository.findAll();
+    }
+
+    @Override
+    public void deleteAll() {
+        itemRepository.deleteAll();
+    }
+
+    @Override
     public Item getItemById(long id) {
         final Optional<Item> itemOpt = itemRepository.findById(id);
         return itemOpt.orElseThrow(() -> new ItemNotFoundException(id));
+    }
+
+    @Override
+    public boolean existsById(long id) {
+        return itemRepository.existsById(id);
     }
 
     @Override
@@ -63,8 +73,8 @@ public class DAOItemImpl implements DAOItem {
     }
 
     @Override
-    public Item getByIdAndOwnerId(long id, long ownerId) {
-        final Optional<Item> itemOpt = itemRepository.findByIdAndOwnerId(id, ownerId);
-        return itemOpt.orElseThrow(() -> new ItemNotFoundException(id));
+    public Item getByIdAndOwnerId(long itemId, long ownerId) {
+        final Optional<Item> itemOpt = itemRepository.findByIdAndOwnerId(itemId, ownerId);
+        return itemOpt.orElseThrow(() -> new ItemNotFoundException(itemId));
     }
 }
