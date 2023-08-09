@@ -35,8 +35,8 @@ import static ru.practicum.shareit.common.Utils.createOffsetBasedPageRequest;
 @Service
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
-    private final DaoItem itemRepository;
-    private final DaoUser userRepository;
+    private final DaoItem daoItem;
+    private final DaoUser daoUser;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
     private final ItemRequestRepository itemRequestRepository;
@@ -44,7 +44,7 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     @Override
     public Long create(ItemCreateDto item, long ownerId) {
-        final User owner = userRepository.getUserById(ownerId);
+        final User owner = daoUser.getUserById(ownerId);
 
         // ToDo
         // 1. Получение заявки на вещь и проброс исключения вынести в репозиторий.
@@ -58,7 +58,7 @@ public class ItemServiceImpl implements ItemService {
         Item itemEntity = ItemMapper.toItem(item);
         itemEntity.setOwner(owner);
         itemEntity.setRequest(itemRequest);
-        itemEntity = itemRepository.save(itemEntity);
+        itemEntity = daoItem.save(itemEntity);
 
         return itemEntity.getId();
     }
@@ -73,19 +73,19 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     @Override
     public ItemDto update(long id, ItemDto item, long ownerId) {
-        itemRepository.checkItemExists(id);
-        userRepository.checkUserExists(ownerId);
+        daoItem.checkItemExists(id);
+        daoUser.checkUserExists(ownerId);
         checkUserOwnItem(ownerId, id);
 
         // Обновление
-        final Item itemFromRepo = itemRepository.getByIdAndOwnerId(id, ownerId);
+        final Item itemFromRepo = daoItem.getByIdAndOwnerId(id, ownerId);
         final Item changedItem = ItemMapper.updateIfDifferent(itemFromRepo, item);
 
         Item updatedItem;
         if (itemFromRepo.equals(changedItem)) {
             updatedItem = changedItem;
         } else {
-            updatedItem = itemRepository.save(changedItem);
+            updatedItem = daoItem.save(changedItem);
         }
 
         return ItemMapper.toItemDto(updatedItem);
@@ -94,7 +94,7 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(readOnly = true)
     @Override
     public ItemWithAdditionalDataDto getById(long id, long userId) {
-        final Item item = itemRepository.getItemById(id);
+        final Item item = daoItem.getItemById(id);
 
         final ItemWithAdditionalDataDto itemWithAdditionalDataDto = ItemMapper.toItemWithAdditionalDataDto(item);
 
@@ -118,10 +118,10 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(readOnly = true)
     @Override
     public ItemDto getOwnerItemById(long itemId, long ownerId) {
-        itemRepository.checkItemExists(itemId);
-        userRepository.checkUserExists(ownerId);
+        daoItem.checkItemExists(itemId);
+        daoUser.checkUserExists(ownerId);
 
-        final Item item = itemRepository.getByIdAndOwnerId(itemId, ownerId);
+        final Item item = daoItem.getByIdAndOwnerId(itemId, ownerId);
 
         return ItemMapper.toItemDto(item);
     }
@@ -140,9 +140,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     private List<ItemWithAdditionalDataDto> getAllOwnerItems(long ownerId, Pageable pageable) {
-        userRepository.checkUserExists(ownerId);
+        daoUser.checkUserExists(ownerId);
 
-        final List<Item> ownerItems = itemRepository.findByOwnerId(ownerId, pageable);
+        final List<Item> ownerItems = daoItem.findByOwnerId(ownerId, pageable);
         final List<ItemWithAdditionalDataDto> ownerItemDtoList = new ArrayList<>();
 
         if (ownerItems.isEmpty()) {
@@ -196,14 +196,14 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     private List<ItemDto> searchItems(String text, long userId, Pageable pageable) {
-        userRepository.checkUserExists(userId);
+        daoUser.checkUserExists(userId);
 
         if (isBlank(text)) {
             return Collections.emptyList();
         }
 
         final String searchText = text.trim().toLowerCase();
-        return itemRepository.findAvailableByNameOrDescription(searchText, pageable)
+        return daoItem.findAvailableByNameOrDescription(searchText, pageable)
                 .stream()
                 .map(ItemMapper::toItemDto)
                 .collect(toUnmodifiableList());
@@ -212,8 +212,8 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     @Override
     public CommentDto addComment(long itemId, long userId, CommentCreateDto commentDto) {
-        final Item item = itemRepository.getItemById(itemId); // Проверяем (и получаем) существует ли вещь.
-        final User user = userRepository.getUserById(userId); // Проверяем (и получаем) существует ли пользователь.
+        final Item item = daoItem.getItemById(itemId); // Проверяем (и получаем) существует ли вещь.
+        final User user = daoUser.getUserById(userId); // Проверяем (и получаем) существует ли пользователь.
 
         // Проверяем, что пользователь брал в аренду вещь.
         final boolean isUserBookingItem = bookingRepository.isUserBookingItem(userId, itemId, LocalDateTime.now());
@@ -232,7 +232,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void checkUserOwnItem(long userId, long itemId) {
-        if (!itemRepository.existsByIdAndOwnerId(itemId, userId)) {
+        if (!daoItem.existsByIdAndOwnerId(itemId, userId)) {
             throw new NotOwnerAccessException(String.format("Вещь с id = %s не принадлежит пользователю с id = %s", itemId, userId));
         }
     }

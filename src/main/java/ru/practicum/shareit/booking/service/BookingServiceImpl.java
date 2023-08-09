@@ -28,8 +28,8 @@ import static ru.practicum.shareit.common.Utils.createOffsetBasedPageRequest;
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
-    private final DaoUser userRepository;
-    private final DaoItem itemRepository;
+    private final DaoUser daoUser;
+    private final DaoItem daoItem;
 
     //  Добавление нового запроса на бронирование.
     //  Запрос может быть создан любым пользователем, а затем подтверждён владельцем вещи.
@@ -38,11 +38,11 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDto create(BookingCreateDto newBooking, long userId) {
         // Проверяем, что пользователь существует.
-        final User user = userRepository.getUserById(userId);
+        final User user = daoUser.getUserById(userId);
 
         // Проверяем, что вещь существует.
         final long itemId = newBooking.getItemId();
-        final Item item = itemRepository.getItemById(itemId);
+        final Item item = daoItem.getItemById(itemId);
 
         // Валидация (начало и конец бронирования)
         validateBookingCreateDto(newBooking);
@@ -99,7 +99,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDto getBooking(long id, long userId) {
         // Проверяем существует ли пользователь.
-        userRepository.checkUserExists(userId);
+        daoUser.checkUserExists(userId);
 
         // Проверяем есть ли заявка на бронирование.
         final Booking booking = getBooking(id);
@@ -120,7 +120,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getUserBookingsByState(long userId, BookingStateForSearch searchState) {
         // Проверяем существует ли пользователь.
-        userRepository.checkUserExists(userId);
+        daoUser.checkUserExists(userId);
 
         final List<Booking> userBookings = bookingRepository.getUserBookingsByState(userId, searchState);
         return BookingMapper.toBookingDtoList(userBookings);
@@ -133,7 +133,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getBookingsByItemOwner(long ownerId, BookingStateForSearch searchState) {
         // Проверяем существует ли пользователь.
-        userRepository.checkUserExists(ownerId);
+        daoUser.checkUserExists(ownerId);
 
         final List<Booking> bookingsByOwner = bookingRepository.getBookingsByItemOwner(ownerId, searchState);
         return BookingMapper.toBookingDtoList(bookingsByOwner);
@@ -143,7 +143,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getUserBookingsByState(long userId, BookingStateForSearch searchState, Integer from, Integer size) {
         // Проверяем существует ли пользователь.
-        userRepository.checkUserExists(userId);
+        daoUser.checkUserExists(userId);
 
         final List<Booking> userBookings = bookingRepository.getUserBookingsByState(userId, searchState, createOffsetBasedPageRequest(from, size));
         return BookingMapper.toBookingDtoList(userBookings);
@@ -153,7 +153,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getBookingsByItemOwner(long ownerId, BookingStateForSearch searchState, Integer from, Integer size) {
         // Проверяем существует ли пользователь.
-        userRepository.checkUserExists(ownerId);
+        daoUser.checkUserExists(ownerId);
 
         final List<Booking> bookingsByOwner = bookingRepository.getBookingsByItemOwner(ownerId, searchState, createOffsetBasedPageRequest(from, size));
         return BookingMapper.toBookingDtoList(bookingsByOwner);
