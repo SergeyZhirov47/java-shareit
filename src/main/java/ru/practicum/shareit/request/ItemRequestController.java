@@ -39,7 +39,7 @@ public class ItemRequestController {
     // Получить список своих запросов вместе с данными об ответах на них
     @GetMapping
     public List<ItemRequestDto> getAllUserItemRequests(@RequestHeader(USER_ID_REQUEST_HEADER) long userId) {
-        log.info(String.format("POST /requests, %s = %s", USER_ID_REQUEST_HEADER, userId));
+        log.info(String.format("GET /requests, %s = %s", USER_ID_REQUEST_HEADER, userId));
         final List<ItemRequestDto> userItemRequests = itemRequestService.getAllUserItemRequests(userId);
         log.info(String.format("Успешно получены заявки на вещи от пользователя с id = %s", userId));
 
@@ -51,7 +51,7 @@ public class ItemRequestController {
     public List<ItemRequestDto> getAllItemRequests(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
                                                    @PositiveOrZero @RequestParam(name = "from", required = false) Integer from,
                                                    @Positive @RequestParam(name = "size", required = false) Integer size) {
-        log.info(String.format("POST /requests/all?from={from}&size={size}, {from} = %s, {size} = %s, %s = %s", from, size, USER_ID_REQUEST_HEADER, userId));
+        log.info(String.format("GET /requests/all?from={from}&size={size}, {from} = %s, {size} = %s, %s = %s", from, size, USER_ID_REQUEST_HEADER, userId));
         final List<ItemRequestDto> itemRequests = itemRequestService.getAllItemRequests(userId, from, size);
         log.info(String.format("Успешно получены заявки на вещи. Их кол-во %s", itemRequests.size()));
 
@@ -62,7 +62,7 @@ public class ItemRequestController {
     @GetMapping("/{requestId}")
     public ItemRequestDto getItemRequest(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
                                          @PathVariable(name = "requestId") long requestId) {
-        log.info(String.format("POST /requests/{requestId}, {requestId} = %s, %s = %s", requestId, USER_ID_REQUEST_HEADER, userId));
+        log.info(String.format("GET /requests/{requestId}, {requestId} = %s, %s = %s", requestId, USER_ID_REQUEST_HEADER, userId));
         userRepository.checkUserExists(userId);
         final ItemRequestDto itemRequestDto = itemRequestService.getItemRequestById(requestId);
         log.info(String.format("Успешно получен заявка на вещь. Id заявки = %S", itemRequestDto.getId()));
