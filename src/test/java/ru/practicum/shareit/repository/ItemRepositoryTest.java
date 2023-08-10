@@ -82,12 +82,6 @@ public class ItemRepositoryTest {
         assertEquals(items, ownerItems);
     }
 
-    // Те же самые тесты только с pageable...
-    @Test
-    public void findByOwnerIdWithPageable() {
-
-    }
-
     @Test
     public void existsByIdAndOwnerId_whenExists_thenReturnTrue() {
         final Item item = createAndGetItem(owner);
@@ -112,7 +106,6 @@ public class ItemRepositoryTest {
     @Test
     public void existsByIdAndOwnerId_whenUserNotExists_thenReturnFalse() {
         final Item item = createAndGetItem(owner);
-
         final long notExistedUserId = 9999L;
 
         assertFalse(daoUser.existsById(notExistedUserId));
@@ -127,10 +120,47 @@ public class ItemRepositoryTest {
         assertFalse(daoItem.existsByIdAndOwnerId(notExistedItemId, owner.getId()));
     }
 
-    // те же тесты, что и exists ?
     @Test
-    public void getByIdAndOwnerId() {
+    public void getByIdAndOwnerId_whenExists_thenReturnItem() {
+        final Item item = createAndGetItem(owner);
 
+        final Item itemFromDao = daoItem.getByIdAndOwnerId(item.getId(), owner.getId());
+        assertNotNull(itemFromDao);
+        assertEquals(item.getOwner().getId(), itemFromDao.getOwner().getId());
+        assertEquals(item, itemFromDao);
+    }
+
+    @Test
+    public void getByIdAndOwnerId_whenItemExistsByNotOwner_thenThrowException() {
+        User notOwnerUser = User.builder()
+                .name("some user")
+                .email("email@someemail.com")
+                .build();
+        notOwnerUser = daoUser.save(notOwnerUser);
+
+        final Item item = createAndGetItem(owner);
+
+        assertTrue(daoItem.existsByIdAndOwnerId(item.getId(), owner.getId()));
+
+        final User finalNotOwnerUser = notOwnerUser;
+        assertThrows(ItemNotFoundException.class, () -> daoItem.getByIdAndOwnerId(item.getId(), finalNotOwnerUser.getId()));
+    }
+
+    @Test
+    public void getByIdAndOwnerId_whenUserNotExists_thenThrowException() {
+        final Item item = createAndGetItem(owner);
+        final long notExistedUserId = 9999L;
+
+        assertFalse(daoUser.existsById(notExistedUserId));
+        assertThrows(ItemNotFoundException.class, () -> daoItem.getByIdAndOwnerId(item.getId(), notExistedUserId));
+    }
+
+    @Test
+    public void getByIdAndOwnerId_whenItemNotExists_thenThrowException() {
+        final long notExistedItemId = 9999L;
+
+        assertFalse(daoItem.existsById(notExistedItemId));
+        assertThrows(ItemNotFoundException.class, () -> daoItem.getByIdAndOwnerId(notExistedItemId, owner.getId()));
     }
 
     @Test
@@ -210,13 +240,13 @@ public class ItemRepositoryTest {
 
     @Test
     public void findAvailableByNameOrDescription_whenNotFind_thenReturnEmpty() {
-        Item item = Item.builder()
+        final Item item = Item.builder()
                 .name("Item")
                 .description("some item")
                 .isAvailable(true)
                 .owner(owner)
                 .build();
-        item = daoItem.save(item);
+        daoItem.save(item);
 
         assertFalse(daoItem.findAll().isEmpty());
         assertFalse(daoItem.findAvailableByNameOrDescription("item").isEmpty());
@@ -225,21 +255,15 @@ public class ItemRepositoryTest {
 
     @Test
     public void findAvailableByNameOrDescription_whenDescriptionOkButNoAvailable_thenReturnEmpty() {
-        Item item = Item.builder()
+        final Item item = Item.builder()
                 .name("Item")
                 .description("some item")
                 .isAvailable(false)
                 .owner(owner)
                 .build();
-        item = daoItem.save(item);
+        daoItem.save(item);
 
         assertEquals(Collections.emptyList(), daoItem.findAvailableByNameOrDescription("item"));
-    }
-
-    // Те же самые тесты только с pageable...
-    @Test
-    public void findAvailableByNameOrDescriptionWithPageable() {
-
     }
 
     @Test
@@ -264,7 +288,6 @@ public class ItemRepositoryTest {
     @Test
     public void checkItemExists_whenExists_thenOk() {
         final Item item = createAndGetItem(owner);
-
         assertDoesNotThrow(() -> daoItem.checkItemExists(item.getId()));
     }
 
