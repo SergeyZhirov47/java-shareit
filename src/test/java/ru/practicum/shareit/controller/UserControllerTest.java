@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = UserController.class)
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class UserControllerTest {
-    private final static String BASE_ENDPOINT = "/users";
+    private static final String BASE_ENDPOINT = "/users";
     private final MockMvc mockMvc;
     private final ObjectMapper objectMapper;
     @MockBean

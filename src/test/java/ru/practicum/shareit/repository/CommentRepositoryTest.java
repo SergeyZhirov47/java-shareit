@@ -46,7 +46,7 @@ public class CommentRepositoryTest {
     }
 
     @Nested
-    class testFindByItemId {
+    class TestFindByItemId {
         private User owner;
         private Item item;
 
@@ -113,7 +113,7 @@ public class CommentRepositoryTest {
     }
 
     @Nested
-    class testFindByItemIdIn {
+    class TestFindByItemIdIn {
         private User owner1;
         private User owner2;
         private List<Item> owner1Items;

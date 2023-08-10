@@ -37,7 +37,7 @@ import static ru.practicum.shareit.common.ConstantParamStorage.USER_ID_REQUEST_H
 @WebMvcTest(controllers = BookingController.class)
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class BookingControllerTest {
-    private final static String BASE_ENDPOINT = "/bookings";
+    private static final String BASE_ENDPOINT = "/bookings";
     private final MockMvc mockMvc;
     private final ObjectMapper objectMapper;
     @MockBean
