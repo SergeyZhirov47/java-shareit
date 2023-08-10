@@ -420,8 +420,6 @@ public class ItemControllerTest {
     @SneakyThrows
     @Test
     public void getAllOwnerItems_whenHasFromAndNoSize_thenReturn400() {
-        // ToDo
-        // этот случай не учитывается
         final Integer from = 0;
         Mockito.when(itemService.getAllOwnerItems(userId, from, null)).thenReturn(Collections.emptyList());
 
@@ -437,8 +435,6 @@ public class ItemControllerTest {
     @SneakyThrows
     @Test
     public void getAllOwnerItems_whenNoFromAndHasSize_thenReturn400() {
-        // ToDo
-        // этот случай не учитывается
         final Integer size = 10;
         Mockito.when(itemService.getAllOwnerItems(userId, null, size)).thenReturn(Collections.emptyList());
 
