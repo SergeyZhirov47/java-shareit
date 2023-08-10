@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
@@ -20,7 +21,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static ru.practicum.shareit.common.Utils.createOffsetBasedPageRequest;
 
 @DataJpaTest(includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = Repository.class))
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -80,6 +83,80 @@ public class ItemRepositoryTest {
         assertFalse(ownerItems.isEmpty());
         assertEquals(items.size(), ownerItems.size());
         assertEquals(items, ownerItems);
+    }
+
+    @Test
+    void findByOwnerIdWithUnpaged_whenOneItem_thenReturnOne() {
+        final Item item = createAndGetItem(owner);
+
+        final List<Item> ownerItems = daoItem.findByOwnerId(owner.getId(), Pageable.unpaged());
+
+        assertFalse(ownerItems.isEmpty());
+        assertEquals(1, ownerItems.size());
+        assertEquals(item, ownerItems.get(0));
+    }
+
+    @Test
+    void findByOwnerIdWithPageable_whenOneItem_thenReturnOne() {
+        final Item item = createAndGetItem(owner);
+
+        final List<Item> ownerItems = daoItem.findByOwnerId(owner.getId(), createOffsetBasedPageRequest(0, 10));
+
+        assertFalse(ownerItems.isEmpty());
+        assertEquals(1, ownerItems.size());
+        assertEquals(item, ownerItems.get(0));
+    }
+
+    @Test
+    public void findByOwnerIdWithPageable_whenUserHasNoItem_thenReturnEmptyList() {
+        final List<Item> allItems = daoItem.findAll();
+        assertTrue(allItems.isEmpty());
+
+        final List<Item> ownerItems = daoItem.findByOwnerId(owner.getId(), createOffsetBasedPageRequest(0, 10));
+        assertTrue(ownerItems.isEmpty());
+    }
+
+    @Test
+    public void findByOwnerIdWithUnpaged_whenOwnerHasManyItems_thenReturnMany() {
+        final List<Item> items = new ArrayList<>();
+        final int itemCount = 3;
+        for (int counter = 1; counter <= itemCount; counter++) {
+            Item item = Item.builder()
+                    .owner(owner)
+                    .name("item " + counter)
+                    .description("Description for item " + counter)
+                    .isAvailable(true)
+                    .build();
+            item = daoItem.save(item);
+            items.add(item);
+        }
+
+        final List<Item> ownerItems = daoItem.findByOwnerId(owner.getId(), Pageable.unpaged());
+        assertFalse(ownerItems.isEmpty());
+        assertEquals(items.size(), ownerItems.size());
+        assertEquals(items, ownerItems);
+    }
+
+    @Test
+    public void findByOwnerIdWithPageable_whenOwnerHasManyItems_thenReturnMany() {
+        final List<Item> items = new ArrayList<>();
+        final int itemCount = 3;
+        for (int counter = 1; counter <= itemCount; counter++) {
+            Item item = Item.builder()
+                    .owner(owner)
+                    .name("item " + counter)
+                    .description("Description for item " + counter)
+                    .isAvailable(true)
+                    .build();
+            item = daoItem.save(item);
+            items.add(item);
+        }
+
+        final int size = 2;
+        final List<Item> ownerItems = daoItem.findByOwnerId(owner.getId(), createOffsetBasedPageRequest(0, size));
+        assertFalse(ownerItems.isEmpty());
+        assertEquals(size, ownerItems.size());
+        assertThat(ownerItems).containsAnyElementsOf(items);
     }
 
     @Test
@@ -264,6 +341,53 @@ public class ItemRepositoryTest {
         daoItem.save(item);
 
         assertEquals(Collections.emptyList(), daoItem.findAvailableByNameOrDescription("item"));
+    }
+
+    @Test
+    public void findAvailableByNameOrDescriptionWithUnpaged_whenOneItemOk_thenReturnItem() {
+        final String name = "Philosophers' stone";
+        final String description = "Transmutate metals into gold!";
+
+        Item item = Item.builder()
+                .name(name)
+                .description(description)
+                .isAvailable(true)
+                .owner(owner)
+                .build();
+        item = daoItem.save(item);
+
+        final String search = "stone";
+        final List<Item> items = daoItem.findAvailableByNameOrDescription(search, Pageable.unpaged());
+
+        assertFalse(items.isEmpty());
+        assertEquals(item, items.get(0));
+    }
+
+    @Test
+    public void findAvailableByNameOrDescriptionWithPageable_whenManyItemsOk_thenReturnItems() {
+        final List<String> names = List.of("Electric saw", "Electric drill", "Electric jackhammer");
+        final List<String> descriptions = List.of("big saw", "VERY BIG ", "Biggest in the world!");
+
+        final List<Item> items = new ArrayList<>();
+        for (int index = 0; index < names.size(); index++) {
+            Item item = Item.builder()
+                    .name(names.get(index))
+                    .description(descriptions.get(index))
+                    .isAvailable(true)
+                    .owner(owner)
+                    .build();
+
+            item = daoItem.save(item);
+            items.add(item);
+        }
+
+        final int size = 1;
+        final String search = "Electric";
+        final List<Item> itemsFromDb = daoItem.findAvailableByNameOrDescription(search, createOffsetBasedPageRequest(0, size));
+
+        assertFalse(itemsFromDb.isEmpty());
+        assertEquals(size, itemsFromDb.size());
+        assertThat(itemsFromDb).containsAnyElementsOf(items);
     }
 
     @Test

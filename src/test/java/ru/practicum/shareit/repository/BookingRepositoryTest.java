@@ -217,7 +217,6 @@ public class BookingRepositoryTest {
                 .build();
         bookingRepository.save(booking);
 
-
         final LocalDateTime start2 = LocalDateTime.now().withNano(0).plusDays(1);
         final LocalDateTime end2 = start1.plusDays(1);
         booking = Booking.builder()

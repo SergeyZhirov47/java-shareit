@@ -15,10 +15,11 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.DaoUser;
 import ru.practicum.shareit.user.service.UserServiceImpl;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
@@ -172,5 +173,27 @@ public class UserServiceTest {
 
         verify(daoUser).getUserById(anyLong());
         verify(daoUser, never()).save(any(User.class));
+    }
+
+    @Test
+    public void getAll_whenOk_thenReturnAll() {
+        final List<User> allUsersList = List.of(newUser);
+        Mockito.when(daoUser.findAll()).thenReturn(allUsersList);
+
+        final List<UserDto> allUsers = userService.getAll();
+        assertFalse(allUsers.isEmpty());
+        assertEquals(1, allUsers.size());
+        assertEquals(UserMapper.toUserDto(newUser), allUsers.get(0));
+
+        verify(daoUser).findAll();
+    }
+
+    @Test
+    public void delete() {
+        doNothing().when(daoUser).deleteById(anyLong());
+
+        userService.delete(anyLong());
+
+        verify(daoUser).deleteById(anyLong());
     }
 }
