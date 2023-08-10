@@ -23,7 +23,7 @@ import static ru.practicum.shareit.common.ConstantParamStorage.USER_ID_REQUEST_H
 @Slf4j
 public class ItemRequestController {
     private final ItemRequestService itemRequestService;
-    private final DaoUser userRepository;
+    private final DaoUser daoUser;
 
     // добавить новый запрос вещи
     @PostMapping
@@ -63,7 +63,7 @@ public class ItemRequestController {
     public ItemRequestDto getItemRequest(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
                                          @PathVariable(name = "requestId") long requestId) {
         log.info(String.format("GET /requests/{requestId}, {requestId} = %s, %s = %s", requestId, USER_ID_REQUEST_HEADER, userId));
-        userRepository.checkUserExists(userId);
+        daoUser.checkUserExists(userId);
         final ItemRequestDto itemRequestDto = itemRequestService.getItemRequestById(requestId);
         log.info(String.format("Успешно получен заявка на вещь. Id заявки = %S", itemRequestDto.getId()));
 

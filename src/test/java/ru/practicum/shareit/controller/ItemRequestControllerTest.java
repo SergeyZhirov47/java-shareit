@@ -151,11 +151,56 @@ public class ItemRequestControllerTest {
         verify(itemRequestService).getAllUserItemRequests(userId);
     }
 
-    // ToDo
-    // тут еще пагинацию проверять
+    @SneakyThrows
     @Test
-    public void getAllItemRequests_when_then() {
+    public void getAllItemRequests_whenOk_thenReturnOk() {
+        Mockito.when(itemRequestService.getAllItemRequests(userId, null, null))
+                        .thenReturn(Collections.emptyList());
 
+        mockMvc.perform(get(BASE_ENDPOINT + "/all")
+                        .header(USER_ID_REQUEST_HEADER, userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        verify(itemRequestService).getAllItemRequests(userId, null, null);
+    }
+
+    @SneakyThrows
+    @Test
+    public void getAllItemRequests_whenUserNotExists_thenReturn404() {
+        Mockito.when(itemRequestService.getAllItemRequests(userId, null, null))
+                .thenThrow(UserNotFoundException.class);
+
+        mockMvc.perform(get(BASE_ENDPOINT + "/all")
+                        .header(USER_ID_REQUEST_HEADER, userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+        verify(itemRequestService).getAllItemRequests(userId, null, null);
+    }
+
+    @SneakyThrows
+    @Test
+    public void getAllItemRequests_whenOkWithPagination_thenReturnOk() {
+        final Integer from = 0;
+        final Integer size = 10;
+        Mockito.when(itemRequestService.getAllItemRequests(userId, from, size))
+                .thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get(BASE_ENDPOINT + "/all")
+                        .header(USER_ID_REQUEST_HEADER, userId)
+                        .param("from", String.valueOf(from))
+                        .param("size", String.valueOf(size))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        verify(itemRequestService).getAllItemRequests(userId, from, size);
     }
 
     @SneakyThrows

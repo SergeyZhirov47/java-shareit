@@ -137,8 +137,6 @@ public class BookingControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    // ToDo
-    // Здесь еще по идее пагинацию надо проверять.
     @SneakyThrows
     @Test
     public void getUserBookingsByState_whenOk_thenReturnOk() {
@@ -206,8 +204,6 @@ public class BookingControllerTest {
         verify(bookingService, never()).getUserBookingsByState(anyLong(), any(BookingStateForSearch.class), anyInt(), anyInt());
     }
 
-    // ToDo
-    // Здесь еще по идее пагинацию надо проверять.
     @SneakyThrows
     @Test
     public void getBookingsByItemOwner_whenOk_thenReturnOk() {
