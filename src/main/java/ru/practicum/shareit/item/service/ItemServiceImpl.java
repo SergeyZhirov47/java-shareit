@@ -95,7 +95,6 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemWithAdditionalDataDto getById(long id, long userId) {
         final Item item = daoItem.getItemById(id);
-
         final ItemWithAdditionalDataDto itemWithAdditionalDataDto = ItemMapper.toItemWithAdditionalDataDto(item);
 
         // Комментарии.
@@ -122,7 +121,6 @@ public class ItemServiceImpl implements ItemService {
         daoUser.checkUserExists(ownerId);
 
         final Item item = daoItem.getByIdAndOwnerId(itemId, ownerId);
-
         return ItemMapper.toItemDto(item);
     }
 
