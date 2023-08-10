@@ -11,6 +11,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingStateForSearch;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.item.model.Item;
@@ -19,9 +20,11 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.DaoUser;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest(includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = Repository.class))
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -176,6 +179,9 @@ public class BookingRepositoryTest {
 
     }
 
+
+
+
     @Test
     public void getLastBookingForItemsByIdList_when_then() {
 
@@ -280,6 +286,331 @@ public class BookingRepositoryTest {
         booking = bookingRepository.save(booking);
 
         assertFalse(bookingRepository.isUserBookingItem(booker.getId(), item.getId(), LocalDateTime.now()));
+    }
+
+    @Test
+    public void getUserBookingsByState_whenNoBookings_thenReturnEmpty() {
+        final List<Booking> bookings = bookingRepository.getUserBookingsByState(booker.getId(), BookingStateForSearch.ALL);
+        assertTrue(bookings.isEmpty());
+    }
+
+    @Test
+    public void getUserBookingsByState_whenStateIsAll_thenReturnAll() {
+        final LocalDateTime start = LocalDateTime.now().withNano(0).plusDays(1);
+        final LocalDateTime end = start.plusDays(1);
+
+        final List<Booking> bookingList = new ArrayList<>();
+        for (BookingStatus status : BookingStatus.values()) {
+            Booking booking = Booking.builder()
+                    .booker(booker)
+                    .item(item)
+                    .status(status)
+                    .start(start)
+                    .end(end)
+                    .build();
+            booking = bookingRepository.save(booking);
+
+            bookingList.add(booking);
+        }
+
+        final List<Booking> bookings = bookingRepository.getUserBookingsByState(booker.getId(), BookingStateForSearch.ALL);
+        assertFalse(bookings.isEmpty());
+        assertEquals(bookingList.size(), bookings.size());
+        assertEquals(bookingList, bookings);
+    }
+
+    @Test
+    public void getUserBookingsByState_whenStateIsWAITING_thenReturnWaiting() {
+        final LocalDateTime start = LocalDateTime.now().withNano(0).plusDays(1);
+        final LocalDateTime end = start.plusDays(1);
+
+        Booking bookingWaitingStatus = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.WAITING)
+                .start(start)
+                .end(end)
+                .build();
+        bookingWaitingStatus = bookingRepository.save(bookingWaitingStatus);
+
+        Booking booking = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start)
+                .end(end)
+                .build();
+        booking = bookingRepository.save(booking);
+
+        final List<Booking> expectedResult = List.of(bookingWaitingStatus);
+        final List<Booking> bookings = bookingRepository.getUserBookingsByState(booker.getId(), BookingStateForSearch.WAITING);
+
+        assertFalse(bookings.isEmpty());
+        assertEquals(expectedResult.size(), bookings.size());
+        assertEquals(expectedResult, bookings);
+        assertEquals(bookingWaitingStatus.getStatus(), bookings.get(0).getStatus());
+    }
+
+    @Test
+    public void getUserBookingsByState_whenStateIsREJECTED_thenReturnRejected() {
+        final LocalDateTime start = LocalDateTime.now().withNano(0).plusDays(1);
+        final LocalDateTime end = start.plusDays(1);
+
+        Booking bookingRegectedStatus = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.REJECTED)
+                .start(start)
+                .end(end)
+                .build();
+        bookingRegectedStatus = bookingRepository.save(bookingRegectedStatus);
+
+        Booking booking = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start)
+                .end(end)
+                .build();
+        booking = bookingRepository.save(booking);
+
+        final List<Booking> expectedResult = List.of(bookingRegectedStatus);
+        final List<Booking> bookings = bookingRepository.getUserBookingsByState(booker.getId(), BookingStateForSearch.REJECTED);
+
+        assertFalse(bookings.isEmpty());
+        assertEquals(expectedResult.size(), bookings.size());
+        assertEquals(expectedResult, bookings);
+        assertEquals(bookingRegectedStatus.getStatus(), bookings.get(0).getStatus());
+    }
+
+    @Test
+    public void getUserBookingsByState_whenStateIsFUTURE_thenReturnFuture() {
+        final LocalDateTime startPast = LocalDateTime.now().withNano(0).minusDays(10);
+        final LocalDateTime endPast = startPast.minusDays(5);
+
+        final LocalDateTime startFuture = LocalDateTime.now().withNano(0).plusDays(10);
+        final LocalDateTime endFuture = startFuture.plusDays(10);
+
+        Booking pastBooking = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(startPast)
+                .end(endPast)
+                .build();
+        pastBooking = bookingRepository.save(pastBooking);
+
+        Booking futureBooking = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(startFuture)
+                .end(endFuture)
+                .build();
+        futureBooking = bookingRepository.save(futureBooking);
+
+        final List<Booking> expectedResult = List.of(futureBooking);
+        final List<Booking> bookings = bookingRepository.getUserBookingsByState(booker.getId(), BookingStateForSearch.FUTURE);
+
+        assertFalse(bookings.isEmpty());
+        assertEquals(expectedResult.size(), bookings.size());
+        assertEquals(expectedResult, bookings);
+    }
+
+    @Test
+    public void getUserBookingsByState_whenStateIsCURRENT_thenReturnCurrent() {
+        final LocalDateTime startPast = LocalDateTime.now().withNano(0).minusDays(10);
+        final LocalDateTime endPast = startPast.minusDays(5);
+
+        final LocalDateTime startFuture = LocalDateTime.now().withNano(0).plusDays(10);
+        final LocalDateTime endFuture = startFuture.plusDays(10);
+
+        final LocalDateTime startCurrent = LocalDateTime.now().withNano(0).minusDays(1);
+        final LocalDateTime endCurrent = startFuture.plusDays(1);
+
+        Booking pastBooking = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(startPast)
+                .end(endPast)
+                .build();
+        pastBooking = bookingRepository.save(pastBooking);
+
+        Booking futureBooking = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(startFuture)
+                .end(endFuture)
+                .build();
+        futureBooking = bookingRepository.save(futureBooking);
+
+        Booking currentBooking = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(startCurrent)
+                .end(endCurrent)
+                .build();
+        currentBooking = bookingRepository.save(currentBooking);
+
+        final List<Booking> expectedResult = List.of(currentBooking);
+        final List<Booking> bookings = bookingRepository.getUserBookingsByState(booker.getId(), BookingStateForSearch.CURRENT);
+
+        assertFalse(bookings.isEmpty());
+        assertEquals(expectedResult.size(), bookings.size());
+        assertEquals(expectedResult, bookings);
+    }
+
+    @Test
+    public void getUserBookingsByState_whenStateIsPAST_thenReturnPast() {
+        final LocalDateTime startPast = LocalDateTime.now().withNano(0).minusDays(10);
+        final LocalDateTime endPast = startPast.minusDays(5);
+
+        final LocalDateTime startFuture = LocalDateTime.now().withNano(0).plusDays(10);
+        final LocalDateTime endFuture = startFuture.plusDays(10);
+
+        Booking pastBooking = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.REJECTED)
+                .start(startPast)
+                .end(endPast)
+                .build();
+        pastBooking = bookingRepository.save(pastBooking);
+
+        Booking futureBooking = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(startFuture)
+                .end(endFuture)
+                .build();
+        futureBooking = bookingRepository.save(futureBooking);
+
+        final List<Booking> expectedResult = List.of(pastBooking);
+        final List<Booking> bookings = bookingRepository.getUserBookingsByState(booker.getId(), BookingStateForSearch.PAST);
+
+        assertFalse(bookings.isEmpty());
+        assertEquals(expectedResult.size(), bookings.size());
+        assertEquals(expectedResult, bookings);
+    }
+
+    @Test
+    public void getBookingsByItemOwner_whenStateIsAll_thenReturnBookings() {
+        final LocalDateTime start = LocalDateTime.now().withNano(0).plusDays(1);
+        final LocalDateTime end = start.plusDays(1);
+
+        Booking booking1 = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start)
+                .end(end)
+                .build();
+        booking1 = bookingRepository.save(booking1);
+
+        Booking booking2 = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.WAITING)
+                .start(start)
+                .end(end)
+                .build();
+        booking2 = bookingRepository.save(booking2);
+
+        final List<Booking> expectedResult = List.of(booking1, booking2);
+        final List<Booking> bookings = bookingRepository.getBookingsByItemOwner(owner.getId(), BookingStateForSearch.ALL);
+
+        assertFalse(bookings.isEmpty());
+        assertEquals(expectedResult.size(), bookings.size());
+        assertEquals(expectedResult, bookings);
+    }
+
+    @Test
+    public void getBookingsByItemOwner_whenStateIsWaiting_thenReturnWaiting() {
+        final LocalDateTime start = LocalDateTime.now().withNano(0).plusDays(1);
+        final LocalDateTime end = start.plusDays(1);
+
+        Booking booking1 = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start)
+                .end(end)
+                .build();
+        booking1 = bookingRepository.save(booking1);
+
+        Booking bookingWaitingStatus = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.WAITING)
+                .start(start)
+                .end(end)
+                .build();
+        bookingWaitingStatus = bookingRepository.save(bookingWaitingStatus);
+
+        final List<Booking> expectedResult = List.of(bookingWaitingStatus);
+        final List<Booking> bookings = bookingRepository.getBookingsByItemOwner(owner.getId(), BookingStateForSearch.WAITING);
+
+        assertFalse(bookings.isEmpty());
+        assertEquals(expectedResult.size(), bookings.size());
+        assertEquals(expectedResult, bookings);
+    }
+
+    @Test
+    public void getBookingsByItemOwner_whenStateIsAllAndOtherBookings_thenReturnOnlyForOwner() {
+        final LocalDateTime start = LocalDateTime.now().withNano(0).plusDays(1);
+        final LocalDateTime end = start.plusDays(1);
+
+        Booking bookingOwner1 = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start)
+                .end(end)
+                .build();
+        bookingOwner1 = bookingRepository.save(bookingOwner1);
+
+        Booking bookingOwner2 = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.WAITING)
+                .start(start)
+                .end(end)
+                .build();
+        bookingOwner2 = bookingRepository.save(bookingOwner2);
+
+        final User anotherOwner = User.builder()
+                .name("another owner")
+                .email("anotherOwner@email.com")
+                .build();
+        daoUser.save(anotherOwner);
+        final Item anotherItem = Item.builder()
+                .owner(anotherOwner)
+                .name("Another item")
+                .description("description")
+                .isAvailable(true)
+                .build();
+        daoItem.save(anotherItem);
+
+        Booking bookingAnotherOwner = Booking.builder()
+                .booker(booker)
+                .item(anotherItem)
+                .status(BookingStatus.APPROVED)
+                .start(start)
+                .end(end)
+                .build();
+        bookingAnotherOwner = bookingRepository.save(bookingAnotherOwner);
+
+        final List<Booking> expectedResult = List.of(bookingOwner1, bookingOwner2);
+        final List<Booking> bookings = bookingRepository.getBookingsByItemOwner(owner.getId(), BookingStateForSearch.ALL);
+
+        assertFalse(bookings.isEmpty());
+        assertEquals(expectedResult.size(), bookings.size());
+        assertEquals(expectedResult, bookings);
+        assertThat(bookings).doesNotContain(bookingAnotherOwner);
     }
 
     @AfterEach
