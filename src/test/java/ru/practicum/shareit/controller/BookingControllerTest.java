@@ -275,7 +275,7 @@ public class BookingControllerTest {
     }
 
     @Nested
-    public class testCreateBooking {
+    public class TestCreateBooking {
         private LocalDateTime start;
         private LocalDateTime end;
         private BookingCreateDto bookingCreateDto;
