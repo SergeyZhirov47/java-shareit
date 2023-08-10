@@ -10,14 +10,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.user.dto.UserCreateDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
+import ru.practicum.shareit.user.exception.EmailAlreadyUsedException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.DaoUser;
 import ru.practicum.shareit.user.service.UserServiceImpl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -72,17 +71,18 @@ public class UserServiceTest {
                 .name("new name")
                 .email("newEmail@email.org")
                 .build();
-        final User userWithChanges = UserMapper.toUser(userDtoWithChanges);
+        final User userForMock = UserMapper.toUser(userDtoWithChanges);
+        userForMock.setId(newUser.getId());
 
         Mockito.when(daoUser.getUserById(anyLong())).thenReturn(newUser);
-        Mockito.when(daoUser.save(any(User.class))).thenReturn(userWithChanges);
+        Mockito.when(daoUser.save(any(User.class))).thenReturn(userForMock);
 
-        final UserDto updatedDUserDto = userService.update(newUser.getId(), userDtoWithChanges);
+        final UserDto updatedUserDto = userService.update(newUser.getId(), userDtoWithChanges);
 
-        assertNotNull(updatedDUserDto);
-        assertEquals(newUser.getId(), updatedDUserDto.getId());
-        assertEquals(userDtoWithChanges.getName(), updatedDUserDto.getName());
-        assertEquals(userDtoWithChanges.getEmail(), updatedDUserDto.getEmail());
+        assertNotNull(updatedUserDto);
+        assertEquals(newUser.getId(), updatedUserDto.getId());
+        assertEquals(userDtoWithChanges.getName(), updatedUserDto.getName());
+        assertEquals(userDtoWithChanges.getEmail(), updatedUserDto.getEmail());
 
         verify(daoUser).getUserById(anyLong());
         verify(daoUser).save(any(User.class));
@@ -110,40 +110,67 @@ public class UserServiceTest {
 
     @Test
     public void update_whenOnlyName_thenReturnUserDto() {
-        /*
         final UserDto userDtoWithChanges = UserDto.builder()
                 .name("new name")
                 .build();
-        final User userWithChanges = UserMapper.toUser(userDtoWithChanges);
+        final User userForMock = User.builder()
+                .id(newUser.getId())
+                .name(userDtoWithChanges.getName())
+                .email(newUser.getEmail())
+                .build();
 
         Mockito.when(daoUser.getUserById(anyLong())).thenReturn(newUser);
-        Mockito.when(daoUser.save(any(User.class))).thenReturn(userWithChanges);
+        Mockito.when(daoUser.save(any(User.class))).thenReturn(userForMock);
 
         final UserDto updatedDUserDto = userService.update(newUser.getId(), userDtoWithChanges);
 
         assertNotNull(updatedDUserDto);
-        assertEquals(newUser.getId(), updatedDUserDto.getId());
+        assertEquals(userForMock.getId(), updatedDUserDto.getId());
         assertEquals(userDtoWithChanges.getName(), updatedDUserDto.getName());
-        assertEquals(newUser.getEmail(), updatedDUserDto.getEmail());
+        assertEquals(userForMock.getEmail(), updatedDUserDto.getEmail());
 
         verify(daoUser).getUserById(anyLong());
         verify(daoUser).save(any(User.class));
-
-         */
     }
 
     @Test
-    public void getById_when_then() {
+    public void update_whenOnlyEmail_thenReturnUserDto() {
+        final UserDto userDtoWithChanges = UserDto.builder()
+                .email("newEmail.com")
+                .build();
+        final User userForMock = User.builder()
+                .id(newUser.getId())
+                .name(newUser.getName())
+                .email(userDtoWithChanges.getEmail())
+                .build();
 
+        Mockito.when(daoUser.getUserById(anyLong())).thenReturn(newUser);
+        Mockito.when(daoUser.save(any(User.class))).thenReturn(userForMock);
+
+        final UserDto updatedDUserDto = userService.update(newUser.getId(), userDtoWithChanges);
+
+        assertNotNull(updatedDUserDto);
+        assertEquals(userForMock.getId(), updatedDUserDto.getId());
+        assertEquals(userForMock.getName(), updatedDUserDto.getName());
+        assertEquals(userDtoWithChanges.getEmail(), updatedDUserDto.getEmail());
+
+        verify(daoUser).getUserById(anyLong());
+        verify(daoUser).save(any(User.class));
     }
 
     @Test
-    public void getAll_when_then() {
+    public void update_whenEmailRepeat_thenThrowException() {
+        final UserDto userDtoWithChanges = UserDto.builder()
+                .name("new Name")
+                .email("alreadyUserEmail@email.com")
+                .build();
 
-    }
+        Mockito.when(daoUser.getUserById(anyLong())).thenReturn(newUser);
+        Mockito.when(daoUser.existsByEmail(anyString())).thenReturn(true);
 
-    @Test
-    public void delete_when_then() {
+        assertThrows(EmailAlreadyUsedException.class, () -> userService.update(newUser.getId(), userDtoWithChanges));
 
+        verify(daoUser).getUserById(anyLong());
+        verify(daoUser, never()).save(any(User.class));
     }
 }
