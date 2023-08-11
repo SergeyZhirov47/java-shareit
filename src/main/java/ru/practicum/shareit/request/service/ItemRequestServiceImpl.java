@@ -25,7 +25,7 @@ import static java.util.Objects.nonNull;
 @RequiredArgsConstructor
 public class ItemRequestServiceImpl implements ItemRequestService {
     private final ItemRequestRepository itemRequestRepository;
-    private final DaoUser userRepository;
+    private final DaoUser daoUser;
 
     private final Sort itemRequestCreatedSort = Sort.by("created");
 
@@ -48,7 +48,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Transactional(readOnly = true)
     @Override
     public List<ItemRequestDto> getAllUserItemRequests(long userId) {
-        userRepository.checkUserExists(userId);
+        daoUser.checkUserExists(userId);
 
         final List<ItemRequest> itemRequests = itemRequestRepository.findByRequestorId(userId, itemRequestCreatedSort.descending());
         return ItemRequestMapper.toItemRequestDtoList(itemRequests);
@@ -59,7 +59,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Transactional(readOnly = true)
     @Override
     public List<ItemRequestDto> getAllItemRequests(long userId, Integer from, Integer size) {
-        userRepository.checkUserExists(userId);
+        daoUser.checkUserExists(userId);
 
         List<ItemRequest> itemRequests;
 
@@ -85,7 +85,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     private ItemRequest createModel(ItemRequestCreateDto itemRequest, long userId) {
-        final User requestor = userRepository.getUserById(userId);
+        final User requestor = daoUser.getUserById(userId);
         ItemRequest itemRequestEntity = ItemRequestMapper.toItemRequest(itemRequest);
         itemRequestEntity.setRequestor(requestor);
         itemRequestEntity.setCreated(LocalDateTime.now());
