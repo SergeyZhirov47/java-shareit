@@ -3,7 +3,6 @@ package ru.practicum.shareit.item.dto;
 import lombok.experimental.UtilityClass;
 import ru.practicum.shareit.common.AbstractMapper;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.model.User;
 
 import static java.util.Objects.isNull;
 
@@ -31,29 +30,6 @@ public class ItemMapper extends AbstractMapper {
                 .name(item.getName())
                 .description(item.getDescription())
                 .isAvailable(item.isAvailable())
-                .build();
-    }
-
-    public Item toItem(ItemDto itemDto, User owner) {
-        if (isNull(itemDto)) return null;
-
-        return Item.builder()
-                .id(itemDto.getId())
-                .name(itemDto.getName())
-                .description(itemDto.getDescription())
-                .isAvailable(itemDto.getIsAvailable())
-                .owner(owner)
-                .build();
-    }
-
-    public Item toItem(ItemCreateDto itemDto, User owner) {
-        if (isNull(itemDto)) return null;
-
-        return Item.builder()
-                .name(itemDto.getName())
-                .description(itemDto.getDescription())
-                .isAvailable(itemDto.getIsAvailable())
-                .owner(owner)
                 .build();
     }
 
