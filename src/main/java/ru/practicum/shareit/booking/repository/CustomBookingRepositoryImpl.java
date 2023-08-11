@@ -220,14 +220,6 @@ public class CustomBookingRepositoryImpl implements CustomBookingRepository {
             return booking.start.after(startDate);
         }
 
-        private BooleanExpression getLastBookingApproved(LocalDateTime endDate) {
-            return getApproved().and(getLastBooking(endDate));
-        }
-
-        private BooleanExpression getNextBookingApproved(LocalDateTime startDate) {
-            return getApproved().and(getNextBooking(startDate));
-        }
-
         private BooleanExpression getLastBooking(long itemId, LocalDateTime endDate) {
             return getByItemId(itemId).and(getApproved()).and(getLastBooking(endDate));
         }

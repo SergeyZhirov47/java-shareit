@@ -22,6 +22,7 @@ import ru.practicum.shareit.user.repository.DaoUser;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,6 +40,7 @@ public class BookingRepositoryTest {
     private User booker;
     private User notBooker;
     private Item item;
+    private Item item2;
 
     @BeforeEach
     public void init() {
@@ -73,6 +75,14 @@ public class BookingRepositoryTest {
                 .isAvailable(true)
                 .build();
         item = daoItem.save(item);
+
+        item2 = Item.builder()
+                .owner(owner)
+                .name("Item 2")
+                .description("description 2")
+                .isAvailable(true)
+                .build();
+        item2 = daoItem.save(item2);
     }
 
     @Test
@@ -363,15 +373,340 @@ public class BookingRepositoryTest {
         assertNull(nextBooking);
     }
 
-    //-------------------------------------------------
     @Test
-    public void getLastBookingForItemsByIdList_when_then() {
+    public void getLastBookingForItemsByIdList_whenOneItemHasLastBooking_thenReturnBookings() {
+        final LocalDateTime start = LocalDateTime.now().withNano(0).minusDays(1);
+        final LocalDateTime end = start.plusDays(1);
 
+        Booking booking = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start)
+                .end(end)
+                .build();
+        booking = bookingRepository.save(booking);
+
+        final List<Long> itemIds = List.of(item.getId());
+        final Map<Long, Booking> bookingMap = bookingRepository.getLastBookingForItemsByIdList(itemIds, LocalDateTime.now());
+
+        assertNotNull(bookingMap);
+        assertTrue(bookingMap.containsKey(item.getId()));
+        assertEquals(booking, bookingMap.get(item.getId()));
     }
 
     @Test
-    public void getNextBookingForItemsByIdList_when_then() {
+    public void getLastBookingForItemsByIdList_whenManyItemsHasLastBooking_thenReturnBookings() {
+        final LocalDateTime start = LocalDateTime.now().withNano(0).minusDays(1);
+        final LocalDateTime end = start.plusDays(1);
 
+        Booking booking1 = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start)
+                .end(end)
+                .build();
+        booking1 = bookingRepository.save(booking1);
+
+        Booking booking2 = Booking.builder()
+                .booker(booker)
+                .item(item2)
+                .status(BookingStatus.APPROVED)
+                .start(start)
+                .end(end)
+                .build();
+        booking2 = bookingRepository.save(booking2);
+
+        final List<Long> itemIds = List.of(item.getId(), item2.getId());
+        final Map<Long, Booking> bookingMap = bookingRepository.getLastBookingForItemsByIdList(itemIds, LocalDateTime.now());
+
+        assertNotNull(bookingMap);
+        assertThat(bookingMap).containsOnlyKeys(itemIds);
+        assertThat(bookingMap).containsValues(booking1, booking2);
+    }
+
+    @Test
+    public void getLastBookingForItemsByIdList_whenSomeoneHasLastBooking_thenReturnBooking() {
+        final LocalDateTime start = LocalDateTime.now().withNano(0).minusDays(1);
+        final LocalDateTime end = start.plusDays(1);
+
+        Booking booking1 = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start)
+                .end(end)
+                .build();
+        booking1 = bookingRepository.save(booking1);
+
+        final List<Long> itemIds = List.of(item.getId(), item2.getId());
+        final Map<Long, Booking> bookingMap = bookingRepository.getLastBookingForItemsByIdList(itemIds, LocalDateTime.now());
+
+        assertNotNull(bookingMap);
+        assertThat(bookingMap).containsKey(item.getId());
+        assertThat(bookingMap).containsValues(booking1);
+    }
+
+    @Test
+    public void getLastBookingForItemsByIdList_whenNotAllHasApprovedStatus_thenReturnBookings() {
+        final LocalDateTime start1 = LocalDateTime.now().withNano(0).minusDays(1);
+        final LocalDateTime end1 = start1.plusDays(1);
+
+        final LocalDateTime start2 = LocalDateTime.now().withNano(0).minusDays(5);
+        final LocalDateTime end2 = start2.plusDays(1);
+
+        Booking booking1 = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start1)
+                .end(end1)
+                .build();
+        booking1 = bookingRepository.save(booking1);
+
+        Booking booking2 = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.WAITING)
+                .start(start1)
+                .end(end1)
+                .build();
+        booking2 = bookingRepository.save(booking2);
+
+        Booking booking3 = Booking.builder()
+                .booker(booker)
+                .item(item2)
+                .status(BookingStatus.APPROVED)
+                .start(start2)
+                .end(end2)
+                .build();
+        booking3 = bookingRepository.save(booking3);
+
+        Booking booking4 = Booking.builder()
+                .booker(booker)
+                .item(item2)
+                .status(BookingStatus.REJECTED)
+                .start(start2)
+                .end(end2)
+                .build();
+        booking4 = bookingRepository.save(booking4);
+
+        final List<Booking> expectedResult = List.of(booking1, booking3);
+        final List<Long> itemIds = List.of(item.getId(), item2.getId());
+        final Map<Long, Booking> bookingMap = bookingRepository.getLastBookingForItemsByIdList(itemIds, LocalDateTime.now());
+
+        assertNotNull(bookingMap);
+        assertThat(bookingMap).containsOnlyKeys(itemIds);
+        assertThat(bookingMap).containsValues(expectedResult.toArray(Booking[]::new));
+    }
+
+    @Test
+    public void getLastBookingForItemsByIdList_whenNoBookings_thenReturnEmpty() {
+        final List<Long> itemIds = List.of(item.getId(), item2.getId());
+        final Map<Long, Booking> bookingMap = bookingRepository.getLastBookingForItemsByIdList(itemIds, LocalDateTime.now());
+
+        assertTrue(bookingMap.isEmpty());
+    }
+
+    @Test
+    public void getLastBookingForItemsByIdList_whenHasOnlyFutureBooking_thenReturnEmpty() {
+        final LocalDateTime start1 = LocalDateTime.now().withNano(0).plusDays(1);
+        final LocalDateTime end1 = start1.plusDays(1);
+
+        final LocalDateTime start2 = LocalDateTime.now().withNano(0).plusDays(5);
+        final LocalDateTime end2 = start2.plusDays(1);
+
+        Booking booking1 = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start1)
+                .end(end1)
+                .build();
+        booking1 = bookingRepository.save(booking1);
+
+        Booking booking2 = Booking.builder()
+                .booker(booker)
+                .item(item2)
+                .status(BookingStatus.WAITING)
+                .start(start2)
+                .end(end2)
+                .build();
+        booking2 = bookingRepository.save(booking2);
+
+        final List<Long> itemIds = List.of(item.getId(), item2.getId());
+        final Map<Long, Booking> bookingMap = bookingRepository.getLastBookingForItemsByIdList(itemIds, LocalDateTime.now());
+
+        assertTrue(bookingMap.isEmpty());
+    }
+
+    @Test
+    public void getNextBookingForItemsByIdList_whenOneItemHasLastBooking_thenReturnBookings() {
+        final LocalDateTime start = LocalDateTime.now().withNano(0).plusDays(1);
+        final LocalDateTime end = start.plusDays(1);
+
+        Booking booking = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start)
+                .end(end)
+                .build();
+        booking = bookingRepository.save(booking);
+
+        final List<Long> itemIds = List.of(item.getId());
+        final Map<Long, Booking> bookingMap = bookingRepository.getNextBookingForItemsByIdList(itemIds, LocalDateTime.now());
+
+        assertNotNull(bookingMap);
+        assertTrue(bookingMap.containsKey(item.getId()));
+        assertEquals(booking, bookingMap.get(item.getId()));
+    }
+
+    @Test
+    public void getNextBookingForItemsByIdList_whenManyItemsHasLastBooking_thenReturnBookings() {
+        final LocalDateTime start = LocalDateTime.now().withNano(0).plusDays(1);
+        final LocalDateTime end = start.plusDays(1);
+
+        Booking booking1 = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start)
+                .end(end)
+                .build();
+        booking1 = bookingRepository.save(booking1);
+
+        Booking booking2 = Booking.builder()
+                .booker(booker)
+                .item(item2)
+                .status(BookingStatus.APPROVED)
+                .start(start)
+                .end(end)
+                .build();
+        booking2 = bookingRepository.save(booking2);
+
+        final List<Long> itemIds = List.of(item.getId(), item2.getId());
+        final Map<Long, Booking> bookingMap = bookingRepository.getNextBookingForItemsByIdList(itemIds, LocalDateTime.now());
+
+        assertNotNull(bookingMap);
+        assertThat(bookingMap).containsOnlyKeys(itemIds);
+        assertThat(bookingMap).containsValues(booking1, booking2);
+    }
+
+    @Test
+    public void getNextBookingForItemsByIdList_whenSomeoneHasNextBooking_thenReturnBooking() {
+        final LocalDateTime start = LocalDateTime.now().withNano(0).plusDays(1);
+        final LocalDateTime end = start.plusDays(1);
+
+        Booking booking1 = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start)
+                .end(end)
+                .build();
+        booking1 = bookingRepository.save(booking1);
+
+        final List<Long> itemIds = List.of(item.getId(), item2.getId());
+        final Map<Long, Booking> bookingMap = bookingRepository.getNextBookingForItemsByIdList(itemIds, LocalDateTime.now());
+
+        assertNotNull(bookingMap);
+        assertThat(bookingMap).containsKey(item.getId());
+        assertThat(bookingMap).containsValues(booking1);
+    }
+
+    @Test
+    public void getNextBookingForItemsByIdList_whenNotAllHasApprovedStatus_thenReturnBookings() {
+        final LocalDateTime start1 = LocalDateTime.now().withNano(0).plusDays(1);
+        final LocalDateTime end1 = start1.plusDays(1);
+
+        final LocalDateTime start2 = LocalDateTime.now().withNano(0).plusDays(5);
+        final LocalDateTime end2 = start2.plusDays(1);
+
+        Booking booking1 = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start1)
+                .end(end1)
+                .build();
+        booking1 = bookingRepository.save(booking1);
+
+        Booking booking2 = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.WAITING)
+                .start(start1)
+                .end(end1)
+                .build();
+        booking2 = bookingRepository.save(booking2);
+
+        Booking booking3 = Booking.builder()
+                .booker(booker)
+                .item(item2)
+                .status(BookingStatus.APPROVED)
+                .start(start2)
+                .end(end2)
+                .build();
+        booking3 = bookingRepository.save(booking3);
+
+        Booking booking4 = Booking.builder()
+                .booker(booker)
+                .item(item2)
+                .status(BookingStatus.REJECTED)
+                .start(start2)
+                .end(end2)
+                .build();
+        booking4 = bookingRepository.save(booking4);
+
+        final List<Booking> expectedResult = List.of(booking1, booking3);
+        final List<Long> itemIds = List.of(item.getId(), item2.getId());
+        final Map<Long, Booking> bookingMap = bookingRepository.getNextBookingForItemsByIdList(itemIds, LocalDateTime.now());
+
+        assertNotNull(bookingMap);
+        assertThat(bookingMap).containsOnlyKeys(itemIds);
+        assertThat(bookingMap).containsValues(expectedResult.toArray(Booking[]::new));
+    }
+
+    @Test
+    public void getNextBookingForItemsByIdList_whenNoBookings_thenReturnEmpty() {
+        final List<Long> itemIds = List.of(item.getId(), item2.getId());
+        final Map<Long, Booking> bookingMap = bookingRepository.getNextBookingForItemsByIdList(itemIds, LocalDateTime.now());
+
+        assertTrue(bookingMap.isEmpty());
+    }
+
+    @Test
+    public void getNextBookingForItemsByIdList_whenHasOnlyPastBooking_thenReturnEmpty() {
+        final LocalDateTime start1 = LocalDateTime.now().withNano(0).minusDays(1);
+        final LocalDateTime end1 = start1.plusDays(1);
+
+        final LocalDateTime start2 = LocalDateTime.now().withNano(0).minusDays(5);
+        final LocalDateTime end2 = start2.plusDays(1);
+
+        Booking booking1 = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start1)
+                .end(end1)
+                .build();
+        booking1 = bookingRepository.save(booking1);
+
+        Booking booking2 = Booking.builder()
+                .booker(booker)
+                .item(item2)
+                .status(BookingStatus.WAITING)
+                .start(start2)
+                .end(end2)
+                .build();
+        booking2 = bookingRepository.save(booking2);
+
+        final List<Long> itemIds = List.of(item.getId(), item2.getId());
+        final Map<Long, Booking> bookingMap = bookingRepository.getNextBookingForItemsByIdList(itemIds, LocalDateTime.now());
+
+        assertTrue(bookingMap.isEmpty());
     }
 
     @Test
@@ -420,7 +755,7 @@ public class BookingRepositoryTest {
     }
 
     @Test
-    public void isUserBookingItem_whenHeDont_thenReturnFalse() {
+    public void isUserBookingItem_whenUserDontBooking_thenReturnFalse() {
         final LocalDateTime start = LocalDateTime.now().withNano(0).plusDays(1);
         final LocalDateTime end = start.plusDays(1);
 
