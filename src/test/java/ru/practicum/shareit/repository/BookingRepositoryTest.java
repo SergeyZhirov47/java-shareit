@@ -169,19 +169,201 @@ public class BookingRepositoryTest {
         assertFalse(bookingRepository.isUserBookingAuthor(booking.getId(), notBooker.getId()));
     }
 
+    //--------++++++++
     @Test
-    public void getLastBookingForItemById_when_then() {
+    public void getLastBookingForItemById_whenHasLastBooking_thenReturnBooking() {
+        final LocalDateTime start = LocalDateTime.now().withNano(0).minusDays(1);
+        final LocalDateTime end = start.plusDays(1);
 
+        Booking booking = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start)
+                .end(end)
+                .build();
+        booking = bookingRepository.save(booking);
+
+        final Booking lastBooking = bookingRepository.getLastBookingForItemById(item.getId(), LocalDateTime.now());
+
+        assertNotNull(lastBooking);
+        assertEquals(booking, lastBooking);
     }
 
     @Test
-    public void getNextBookingForItemById_when_then() {
+    public void getLastBookingForItemById_whenNoLastBooking_thenReturnNull() {
+        final Booking lastBooking = bookingRepository.getLastBookingForItemById(item.getId(), LocalDateTime.now());
 
+        assertNull(lastBooking);
     }
 
+    @Test
+    public void getLastBookingForItemById_whenLastBookingStatusIsNotApproved_thenReturnNull() {
+        final LocalDateTime start = LocalDateTime.now().withNano(0).minusDays(1);
+        final LocalDateTime end = start.plusDays(1);
 
+        Booking booking = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.WAITING)
+                .start(start)
+                .end(end)
+                .build();
+        booking = bookingRepository.save(booking);
 
+        final Booking lastBooking = bookingRepository.getLastBookingForItemById(item.getId(), LocalDateTime.now());
 
+        assertNull(lastBooking);
+    }
+
+    @Test
+    public void getLastBookingForItemById_whenHasFewBooking_thenReturnBooking() {
+        final LocalDateTime start1 = LocalDateTime.now().withNano(0).minusDays(10);
+        final LocalDateTime end1 = start1.plusDays(1);
+
+        final LocalDateTime start2 = LocalDateTime.now().withNano(0).minusDays(1);
+        final LocalDateTime end2 = start2.plusDays(1);
+
+        Booking booking1 = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start1)
+                .end(end1)
+                .build();
+        booking1 = bookingRepository.save(booking1);
+
+        Booking booking2 = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start2)
+                .end(end2)
+                .build();
+        booking2 = bookingRepository.save(booking2);
+
+        final Booking lastBooking = bookingRepository.getLastBookingForItemById(item.getId(), LocalDateTime.now());
+
+        assertNotNull(lastBooking);
+        assertEquals(booking2, lastBooking);
+    }
+
+    @Test
+    public void getLastBookingForItemById_whenHasBookingInFuture_thenReturnNull() {
+        final LocalDateTime start = LocalDateTime.now().withNano(0).plusDays(1);
+        final LocalDateTime end = start.plusDays(1);
+
+        Booking booking = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start)
+                .end(end)
+                .build();
+        booking = bookingRepository.save(booking);
+
+        final Booking lastBooking = bookingRepository.getLastBookingForItemById(item.getId(), LocalDateTime.now());
+
+        assertNull(lastBooking);
+    }
+
+    @Test
+    public void getNextBookingForItemById_whenHasNextBooking_thenReturnBooking() {
+        final LocalDateTime start = LocalDateTime.now().withNano(0).plusDays(1);
+        final LocalDateTime end = start.plusDays(1);
+
+        Booking booking = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start)
+                .end(end)
+                .build();
+        booking = bookingRepository.save(booking);
+
+        final Booking nextBooking = bookingRepository.getNextBookingForItemById(item.getId(), LocalDateTime.now());
+
+        assertNotNull(nextBooking);
+        assertEquals(booking, nextBooking);
+    }
+
+    @Test
+    public void getNextBookingForItemById_whenNoNextBooking_thenReturnNull() {
+        final Booking nextBooking = bookingRepository.getNextBookingForItemById(item.getId(), LocalDateTime.now());
+
+        assertNull(nextBooking);
+    }
+
+    @Test
+    public void getNextBookingForItemById_whenNextBookingStatusIsNotApproved_thenReturnNull() {
+        final LocalDateTime start = LocalDateTime.now().withNano(0).plusDays(1);
+        final LocalDateTime end = start.plusDays(1);
+
+        Booking booking = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.WAITING)
+                .start(start)
+                .end(end)
+                .build();
+        booking = bookingRepository.save(booking);
+
+        final Booking nextBooking = bookingRepository.getNextBookingForItemById(item.getId(), LocalDateTime.now());
+
+        assertNull(nextBooking);
+    }
+
+    @Test
+    public void getNextBookingForItemById_whenHasFewBooking_thenReturnBooking() {
+        final LocalDateTime start1 = LocalDateTime.now().withNano(0).plusDays(10);
+        final LocalDateTime end1 = start1.plusDays(1);
+
+        final LocalDateTime start2 = LocalDateTime.now().withNano(0).plusDays(1);
+        final LocalDateTime end2 = start2.plusDays(1);
+
+        Booking booking1 = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start1)
+                .end(end1)
+                .build();
+        booking1 = bookingRepository.save(booking1);
+
+        Booking booking2 = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start2)
+                .end(end2)
+                .build();
+        booking2 = bookingRepository.save(booking2);
+
+        final Booking nextBooking = bookingRepository.getNextBookingForItemById(item.getId(), LocalDateTime.now());
+
+        assertEquals(booking2, nextBooking);
+    }
+
+    @Test
+    public void getNextBookingForItemById_whenHasBookingInPast_thenReturnNull() {
+        final LocalDateTime start = LocalDateTime.now().withNano(0).minusDays(1);
+        final LocalDateTime end = start.plusDays(1);
+
+        Booking booking = Booking.builder()
+                .booker(booker)
+                .item(item)
+                .status(BookingStatus.APPROVED)
+                .start(start)
+                .end(end)
+                .build();
+        booking = bookingRepository.save(booking);
+
+        final Booking nextBooking = bookingRepository.getNextBookingForItemById(item.getId(), LocalDateTime.now());
+
+        assertNull(nextBooking);
+    }
+
+    //-------------------------------------------------
     @Test
     public void getLastBookingForItemsByIdList_when_then() {
 
