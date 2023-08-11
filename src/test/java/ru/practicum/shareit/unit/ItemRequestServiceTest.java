@@ -171,7 +171,7 @@ public class ItemRequestServiceTest {
 
     @Test
     public void getItemRequestById_whenItemRequestNotExisted_thenThrowException() {
-        Mockito.when(itemRequestRepository.findById(anyLong())).thenThrow(ItemRequestNotFoundException.class);
+        Mockito.when(itemRequestRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         assertThrows(ItemRequestNotFoundException.class, () -> itemRequestService.getItemRequestById(requestId));
 

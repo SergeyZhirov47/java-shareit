@@ -9,6 +9,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
+import ru.practicum.shareit.booking.exception.BookingNotFoundException;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStateForSearch;
 import ru.practicum.shareit.booking.model.BookingStatus;
@@ -183,8 +184,20 @@ public class BookingServiceTest {
 
         bookingService.approve(bookingId, ownerId, true);
 
+        verify(bookingRepository).findById(anyLong());
         verify(bookingRepository).isUserOwnItemFromBooking(anyLong(), anyLong());
         verify(bookingRepository).save(any(Booking.class));
+    }
+
+    @Test
+    public void approve_whenBookingNotExisted_thenThrowException() {
+        Mockito.when(bookingRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        assertThrows(BookingNotFoundException.class, () -> bookingService.approve(bookingId, ownerId, true));
+
+        verify(bookingRepository).findById(anyLong());
+        verify(bookingRepository, never()).isUserOwnItemFromBooking(anyLong(), anyLong());
+        verify(bookingRepository, never()).save(any(Booking.class));
     }
 
     @Test

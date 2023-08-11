@@ -13,6 +13,7 @@ import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
+import ru.practicum.shareit.item.exception.NotOwnerAccessException;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
@@ -214,7 +215,27 @@ public class ItemServiceTest {
         verify(daoItem).existsByIdAndOwnerId(anyLong(), anyLong());
         verify(daoItem).getByIdAndOwnerId(anyLong(), anyLong());
         verify(daoItem).save(any(Item.class));
+    }
 
+    @Test
+    public void update_whenNotOwnerTryUpdate_thenThrowException() {
+        final ItemDto itemDto = ItemDto.builder()
+                .name("New item name")
+                .description("new desc")
+                .isAvailable(true)
+                .build();
+
+        doNothing().when(daoItem).checkItemExists(anyLong());
+        doNothing().when(daoUser).checkUserExists(anyLong());
+        Mockito.when(daoItem.existsByIdAndOwnerId(anyLong(), anyLong())).thenReturn(false);
+
+        assertThrows(NotOwnerAccessException.class, () -> itemService.update(itemId, itemDto, ownerId));
+
+        verify(daoItem).checkItemExists(anyLong());
+        verify(daoUser).checkUserExists(anyLong());
+        verify(daoItem).existsByIdAndOwnerId(anyLong(), anyLong());
+        verify(daoItem, never()).getByIdAndOwnerId(anyLong(), anyLong());
+        verify(daoItem, never()).save(any(Item.class));
     }
 
     @Test
