@@ -168,11 +168,6 @@ public class BookingServiceImpl implements BookingService {
 
     private Booking getBooking(long bookingId) {
         final Optional<Booking> bookingOpt = bookingRepository.findById(bookingId);
-
-        if (bookingOpt.isEmpty()) {
-            throw new BookingNotFoundException(bookingId);
-        }
-
-        return bookingOpt.get();
+        return bookingOpt.orElseThrow(() -> new BookingNotFoundException(bookingId));
     }
 }
