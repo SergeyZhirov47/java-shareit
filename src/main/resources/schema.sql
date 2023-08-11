@@ -46,7 +46,8 @@ CREATE TABLE IF NOT EXISTS bookings (
     status varchar NOT NULL,
     CONSTRAINT pk_bookings PRIMARY KEY (id),
     CONSTRAINT fk_items_bookings FOREIGN KEY (item_id) REFERENCES items(id),
-    CONSTRAINT fk_users_bookings FOREIGN KEY (user_id) REFERENCES users(id)
+    CONSTRAINT fk_users_bookings FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT un_unique_booking_record UNIQUE (item_id, user_id, status, start_booking, end_booking)
 );
 
 -- ToDo
