@@ -16,12 +16,12 @@ import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.request.service.ItemRequestService;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
-import ru.practicum.shareit.user.repository.DaoUser;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -153,7 +153,7 @@ public class ItemRequestControllerTest {
     @Test
     public void getAllItemRequests_whenOk_thenReturnOk() {
         Mockito.when(itemRequestService.getAllItemRequests(userId, null, null))
-                        .thenReturn(Collections.emptyList());
+                .thenReturn(Collections.emptyList());
 
         mockMvc.perform(get(BASE_ENDPOINT + "/all")
                         .header(USER_ID_REQUEST_HEADER, userId)
@@ -221,7 +221,7 @@ public class ItemRequestControllerTest {
     @Test
     public void getItemRequest_whenRequestNotExists_thenReturn404() {
         Mockito.when(itemRequestService.getItemRequestById(requestId, userId))
-                        .thenThrow(ItemRequestNotFoundException.class);
+                .thenThrow(ItemRequestNotFoundException.class);
 
         mockMvc.perform(get(BASE_ENDPOINT + "/{requestId}", requestId)
                         .header(USER_ID_REQUEST_HEADER, userId)
