@@ -90,26 +90,6 @@ public class UserServiceTest {
     }
 
     @Test
-    public void update_whenNothingUpdate_thenReturnUserDto() {
-        Mockito.when(daoUser.getUserById(anyLong())).thenReturn(newUser);
-
-        final UserDto sameUserDto = UserDto.builder()
-                .name(userCreateDto.getName())
-                .email(userCreateDto.getEmail())
-                .build();
-
-        final UserDto updatedDUserDto = userService.update(newUser.getId(), sameUserDto);
-
-        assertNotNull(updatedDUserDto);
-        assertEquals(newUser.getId(), updatedDUserDto.getId());
-        assertEquals(sameUserDto.getName(), updatedDUserDto.getName());
-        assertEquals(sameUserDto.getEmail(), updatedDUserDto.getEmail());
-
-        verify(daoUser).getUserById(anyLong());
-        verify(daoUser, never()).save(any(User.class));
-    }
-
-    @Test
     public void update_whenOnlyName_thenReturnUserDto() {
         final UserDto userDtoWithChanges = UserDto.builder()
                 .name("new name")
@@ -167,7 +147,7 @@ public class UserServiceTest {
                 .build();
 
         Mockito.when(daoUser.getUserById(anyLong())).thenReturn(newUser);
-        Mockito.when(daoUser.existsByEmail(anyString())).thenReturn(true);
+        Mockito.when(daoUser.isOtherUserHasSameEmail(anyString(), anyLong())).thenReturn(true);
 
         assertThrows(EmailAlreadyUsedException.class, () -> userService.update(newUser.getId(), userDtoWithChanges));
 

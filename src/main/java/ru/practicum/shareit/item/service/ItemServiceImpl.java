@@ -80,13 +80,7 @@ public class ItemServiceImpl implements ItemService {
         // Обновление
         final Item itemFromRepo = daoItem.getByIdAndOwnerId(id, ownerId);
         final Item changedItem = ItemMapper.updateIfDifferent(itemFromRepo, item);
-
-        Item updatedItem;
-        if (itemFromRepo.equals(changedItem)) {
-            updatedItem = changedItem;
-        } else {
-            updatedItem = daoItem.save(changedItem);
-        }
+        final Item updatedItem = daoItem.save(changedItem);
 
         return ItemMapper.toItemDto(updatedItem);
     }

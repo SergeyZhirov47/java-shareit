@@ -17,6 +17,8 @@ public interface DaoUser {
 
     boolean existsByEmail(String email);
 
+    boolean isOtherUserHasSameEmail(String email, long userId);
+
     boolean existsById(long id);
 
     void deleteById(long id);

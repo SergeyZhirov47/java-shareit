@@ -42,6 +42,11 @@ public class DaoUserImpl implements DaoUser {
     }
 
     @Override
+    public boolean isOtherUserHasSameEmail(String email, long userId) {
+        return userRepository.isOtherUserHasSameEmail(email, userId);
+    }
+
+    @Override
     public boolean existsById(long id) {
         return userRepository.existsById(id);
     }

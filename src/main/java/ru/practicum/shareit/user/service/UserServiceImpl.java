@@ -61,24 +61,11 @@ public class UserServiceImpl implements UserService {
     public UserDto update(long id, UserDto userDto) {
         // Получение и проверка, что пользователь есть.
         final User user = daoUser.getUserById(id);
-
         // Формируем пользователя с измененными полями.
         final User changedUser = UserMapper.updateIfDifferent(user, userDto);
-
-        User updatedUser;
-        if (user.equals(changedUser)) {
-            updatedUser = user;
-        } else {
-            // Если все-таки различия есть, то проверяем почту.
-            final String oldEmail = user.getEmail();
-            final String newEmail = changedUser.getEmail();
-
-            if (!oldEmail.equals(newEmail) && checkNotBlankEmail(newEmail)) {
-                checkExistsUserEmail(newEmail);
-            }
-
-            updatedUser = daoUser.save(changedUser);
-        }
+        // Проверяем, что еще нет пользователя с такой же почтой (и это не наш текущий пользователь)
+        checkExistsUserEmail(changedUser.getEmail(), id);
+        final User updatedUser = daoUser.save(changedUser);
 
         return UserMapper.toUserDto(updatedUser);
     }
@@ -95,8 +82,8 @@ public class UserServiceImpl implements UserService {
         return nonNull(email) && !email.isBlank();
     }
 
-    private void checkExistsUserEmail(final String email) {
-        if (daoUser.existsByEmail(email)) {
+    private void checkExistsUserEmail(final String email, long userId) {
+        if (daoUser.isOtherUserHasSameEmail(email, userId)) {
             throw new EmailAlreadyUsedException(String.format("Пользователь с email = %s уже существует!", email));
         }
     }

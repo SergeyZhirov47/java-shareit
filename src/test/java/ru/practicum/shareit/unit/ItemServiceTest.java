@@ -239,28 +239,6 @@ public class ItemServiceTest {
     }
 
     @Test
-    public void getById_whenOkButNothingUpdate_thenReturnItem() {
-        final ItemDto itemDto = ItemDto.builder()
-                .name(item.getName())
-                .description(item.getDescription())
-                .isAvailable(item.isAvailable())
-                .build();
-
-        doNothing().when(daoItem).checkItemExists(anyLong());
-        doNothing().when(daoUser).checkUserExists(anyLong());
-        Mockito.when(daoItem.existsByIdAndOwnerId(anyLong(), anyLong())).thenReturn(true);
-        Mockito.when(daoItem.getByIdAndOwnerId(anyLong(), anyLong())).thenReturn(item);
-
-        final ItemDto updatedItem = itemService.update(itemId, itemDto, ownerId);
-
-        verify(daoItem).checkItemExists(anyLong());
-        verify(daoUser).checkUserExists(anyLong());
-        verify(daoItem).existsByIdAndOwnerId(anyLong(), anyLong());
-        verify(daoItem).getByIdAndOwnerId(anyLong(), anyLong());
-        verify(daoItem, never()).save(any(Item.class));
-    }
-
-    @Test
     public void getById_whenOkNotOwner_thenReturnItem() {
         Mockito.when(daoItem.getItemById(anyLong())).thenReturn(item);
         Mockito.when(commentRepository.findByItemId(anyLong())).thenReturn(emptyList());
