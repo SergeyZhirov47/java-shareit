@@ -3,6 +3,7 @@ package ru.practicum.shareit.repository;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -14,13 +15,18 @@ import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.DaoItem;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.DaoUser;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static ru.practicum.shareit.common.Utils.createOffsetBasedPageRequest;
@@ -30,6 +36,7 @@ import static ru.practicum.shareit.common.Utils.createOffsetBasedPageRequest;
 public class ItemRepositoryTest {
     private final DaoItem daoItem;
     private final DaoUser daoUser;
+    private final ItemRequestRepository itemRequestRepository;
     private TestEntityManager em;
 
     private User owner;
@@ -37,8 +44,8 @@ public class ItemRepositoryTest {
     @BeforeEach
     public void createOwner() {
         owner = User.builder()
-                .name("user")
-                .email("some@somemail.com")
+                .name("owner")
+                .email("owner@somemail.com")
                 .build();
 
         owner = daoUser.save(owner);
@@ -425,7 +432,7 @@ public class ItemRepositoryTest {
     }
 
     @AfterEach
-    public void deleteAllItems() {
+    public void clean() {
         daoItem.deleteAll();
         daoUser.deleteAll();
     }
@@ -439,5 +446,232 @@ public class ItemRepositoryTest {
                 .build();
 
         return daoItem.save(item);
+    }
+
+    @Nested
+    public class TestFindItemsForItemRequestMethods {
+        private User requestor;
+
+        @BeforeEach
+        public void init() {
+            requestor = User.builder()
+                    .name("requestor")
+                    .email("requestor@email.com")
+                    .build();
+            requestor = daoUser.save(requestor);
+        }
+
+        @Test
+        public void findItemsForItemRequest_whenOneItem_thenReturnItem() {
+            ItemRequest itemRequest = ItemRequest.builder()
+                    .requestor(requestor)
+                    .description("need item")
+                    .created(LocalDateTime.now())
+                    .build();
+            itemRequest = itemRequestRepository.save(itemRequest);
+
+            Item item = Item.builder()
+                    .owner(owner)
+                    .name("Item")
+                    .description("desc")
+                    .isAvailable(true)
+                    .request(itemRequest)
+                    .build();
+            item = daoItem.save(item);
+
+            final List<Item> itemsForRequest = daoItem.findItemsForItemRequest(itemRequest.getId());
+            assertFalse(itemsForRequest.isEmpty());
+            assertEquals(1, itemsForRequest.size());
+            assertEquals(item, itemsForRequest.get(0));
+        }
+
+        @Test
+        public void findItemsForItemRequest_whenManyItems_thenReturnItems() {
+            ItemRequest itemRequest = ItemRequest.builder()
+                    .requestor(requestor)
+                    .description("need item")
+                    .created(LocalDateTime.now())
+                    .build();
+            itemRequest = itemRequestRepository.save(itemRequest);
+
+            final int itemCount = 3;
+            final List<Item> exceptedResult = new ArrayList<>();
+            for (int counter = 1; counter <= itemCount; counter++) {
+                Item item = Item.builder()
+                        .owner(owner)
+                        .name("Item " + counter)
+                        .description("desc " + counter)
+                        .isAvailable(true)
+                        .request(itemRequest)
+                        .build();
+                item = daoItem.save(item);
+
+                exceptedResult.add(item);
+            }
+
+            final List<Item> itemsForRequest = daoItem.findItemsForItemRequest(itemRequest.getId());
+            assertFalse(itemsForRequest.isEmpty());
+            assertEquals(exceptedResult.size(), itemsForRequest.size());
+            assertEquals(exceptedResult, itemsForRequest);
+        }
+
+        @Test
+        public void findItemsForItemRequest_whenNoItems_thenReturnEmpty() {
+            ItemRequest itemRequest = ItemRequest.builder()
+                    .requestor(requestor)
+                    .description("need item")
+                    .created(LocalDateTime.now())
+                    .build();
+            itemRequest = itemRequestRepository.save(itemRequest);
+
+            final List<Item> itemsForRequest = daoItem.findItemsForItemRequest(itemRequest.getId());
+            assertTrue(itemsForRequest.isEmpty());
+        }
+
+        @Test
+        public void findItemsForItemRequests_whenOneItem_thenReturnItem() {
+            ItemRequest itemRequest = ItemRequest.builder()
+                    .requestor(requestor)
+                    .description("need item")
+                    .created(LocalDateTime.now())
+                    .build();
+            itemRequest = itemRequestRepository.save(itemRequest);
+            final long itemRequestId = itemRequest.getId();
+
+            Item item = Item.builder()
+                    .owner(owner)
+                    .name("Item")
+                    .description("desc")
+                    .isAvailable(true)
+                    .request(itemRequest)
+                    .build();
+            item = daoItem.save(item);
+
+            final List<Long> itemRequestIds = List.of(itemRequestId);
+            final Map<Long, List<Item>> itemsForRequest = daoItem.findItemsForItemRequests(itemRequestIds);
+            assertFalse(itemsForRequest.isEmpty());
+            assertTrue(itemsForRequest.containsKey(itemRequestId));
+            assertEquals(item, itemsForRequest.get(itemRequestId).get(0));
+        }
+
+        @Test
+        public void findItemsForItemRequests_whenManyItems_thenReturnItems() {
+            final int itemRequestCount = 2;
+            final List<ItemRequest> requests = new ArrayList<>();
+            for (int counter = 1; counter <= itemRequestCount; counter++) {
+                ItemRequest itemRequest = ItemRequest.builder()
+                        .requestor(requestor)
+                        .description("need item " + counter)
+                        .created(LocalDateTime.now())
+                        .build();
+                itemRequest = itemRequestRepository.save(itemRequest);
+
+                requests.add(itemRequest);
+            }
+
+            final int itemCount = 3;
+            final List<Item> exceptedResult = new ArrayList<>();
+            for (ItemRequest itemRequest : requests) {
+                for (int counter = 1; counter <= itemCount; counter++) {
+                    Item item = Item.builder()
+                            .owner(owner)
+                            .name("Item " + counter)
+                            .description("desc " + counter)
+                            .isAvailable(true)
+                            .request(itemRequest)
+                            .build();
+                    item = daoItem.save(item);
+
+                    exceptedResult.add(item);
+                }
+            }
+
+            final List<Long> itemRequestIds = requests.stream().map(ItemRequest::getId).collect(toUnmodifiableList());
+            final Map<Long, List<Item>> itemsForRequest = daoItem.findItemsForItemRequests(itemRequestIds);
+            final List<Item> flatItems = itemsForRequest.values().stream().flatMap(List::stream).collect(toUnmodifiableList());
+
+            assertFalse(itemsForRequest.isEmpty());
+            assertEquals(itemRequestIds.size(), itemsForRequest.size());
+            assertThat(itemsForRequest).containsKeys(itemRequestIds.toArray(Long[]::new));
+            assertEquals(exceptedResult, flatItems);
+        }
+
+        @Test
+        public void findItemsForItemRequests_whenManyItemsButForOnlyOneRequest_thenReturnItems() {
+            ItemRequest targetItemRequest = ItemRequest.builder()
+                    .requestor(requestor)
+                    .description("need item 1")
+                    .created(LocalDateTime.now())
+                    .build();
+            targetItemRequest = itemRequestRepository.save(targetItemRequest);
+
+            ItemRequest itemRequest2 = ItemRequest.builder()
+                    .requestor(requestor)
+                    .description("need item 2")
+                    .created(LocalDateTime.now())
+                    .build();
+            itemRequest2 = itemRequestRepository.save(itemRequest2);
+
+            final int itemCount = 3;
+            final List<Item> exceptedResult = new ArrayList<>();
+            for (int counter = 1; counter <= itemCount; counter++) {
+                Item item = Item.builder()
+                        .owner(owner)
+                        .name("Item " + counter)
+                        .description("desc " + counter)
+                        .isAvailable(true)
+                        .request(targetItemRequest)
+                        .build();
+                item = daoItem.save(item);
+
+                exceptedResult.add(item);
+            }
+            for (int counter = 1; counter <= itemCount; counter++) {
+                Item item = Item.builder()
+                        .owner(owner)
+                        .name("Item " + counter)
+                        .description("desc " + counter)
+                        .isAvailable(true)
+                        .request(itemRequest2)
+                        .build();
+                item = daoItem.save(item);
+            }
+
+            final List<Long> itemRequestIds = List.of(targetItemRequest.getId());
+            final Map<Long, List<Item>> itemsForRequest = daoItem.findItemsForItemRequests(itemRequestIds);
+            final List<Item> flatItems = itemsForRequest.values().stream().flatMap(List::stream).collect(toUnmodifiableList());
+
+            assertFalse(itemsForRequest.isEmpty());
+            assertEquals(itemRequestIds.size(), itemsForRequest.size());
+            assertThat(itemsForRequest).containsKeys(itemRequestIds.toArray(Long[]::new));
+            assertEquals(exceptedResult, flatItems);
+        }
+
+        @Test
+        public void findItemsForItemRequests_whenNoItems_thenReturnEmpty() {
+            ItemRequest itemRequest = ItemRequest.builder()
+                    .requestor(requestor)
+                    .description("need item")
+                    .created(LocalDateTime.now())
+                    .build();
+            itemRequest = itemRequestRepository.save(itemRequest);
+
+            ItemRequest itemRequest2 = ItemRequest.builder()
+                    .requestor(requestor)
+                    .description("need item 2")
+                    .created(LocalDateTime.now())
+                    .build();
+            itemRequest2 = itemRequestRepository.save(itemRequest2);
+
+            final List<Long> itemRequestIds = List.of(itemRequest.getId(), itemRequest2.getId());
+            final Map<Long, List<Item>> itemsForRequest = daoItem.findItemsForItemRequests(itemRequestIds);
+            assertTrue(itemsForRequest.isEmpty());
+        }
+
+        @AfterEach
+        public void clean() {
+            itemRequestRepository.deleteAll();
+            daoItem.deleteAll();
+        }
     }
 }
