@@ -8,6 +8,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
 import ru.practicum.shareit.common.OffsetBasedPageRequest;
+import ru.practicum.shareit.item.repository.DaoItem;
 import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
@@ -45,6 +46,8 @@ public class ItemRequestServiceTest {
     private final Sort itemRequestCreatedSort = Sort.by("created");
     @Mock
     private DaoUser daoUser;
+    @Mock
+    private DaoItem daoItem;
     @Mock
     private ItemRequestRepository itemRequestRepository;
     @InjectMocks

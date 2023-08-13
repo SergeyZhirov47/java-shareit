@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public interface DaoItem {
@@ -25,6 +26,11 @@ public interface DaoItem {
     boolean existsById(long id);
 
     void checkItemExists(long id);
+
+    List<Item> findItemsForItemRequest(long requestId);
+
+    // Ключ - id ItemRequest, Значение - список предметов по этому запросу
+    Map<Long, List<Item>> findItemsForItemRequests(List<Long> requestIds);
 
     Item save(Item entity);
 

@@ -6,8 +6,10 @@ import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 @Repository
 @RequiredArgsConstructor
@@ -70,6 +72,33 @@ public class DaoItemImpl implements DaoItem {
         if (!itemRepository.existsById(id)) {
             throw new ItemNotFoundException(id);
         }
+    }
+
+    @Override
+    public List<Item> findItemsForItemRequest(long requestId) {
+        return itemRepository.findItemsForItemRequest(requestId);
+    }
+
+    @Override
+    public Map<Long, List<Item>> findItemsForItemRequests(List<Long> requestIds) {
+        if (isNull(requestIds) || requestIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        final List<Item> items = itemRepository.findItemsForItemRequests(requestIds);
+        final Map<Long, List<Item>> result = new HashMap<>();
+        for (final Item item : items) {
+            final long requestId = item.getRequest().getId();
+
+            final List<Item> itemsByRequest = result.get(requestId);
+            if (nonNull(itemsByRequest)) {
+                itemsByRequest.add(item);
+            } else {
+                result.put(requestId, new ArrayList<>(List.of(item)));
+            }
+        }
+
+        return result;
     }
 
     @Override

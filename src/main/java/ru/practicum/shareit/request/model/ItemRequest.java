@@ -24,6 +24,6 @@ public class ItemRequest {
     @JoinColumn(name = "user_id")
     private User requestor; //  пользователь, создавший запрос
     private LocalDateTime created; // дата и время создания запроса
-    @OneToMany(mappedBy = "request")
+    @Transient
     private List<Item> itemsByRequest; // все предметы добавленные по данному запросу.
 }

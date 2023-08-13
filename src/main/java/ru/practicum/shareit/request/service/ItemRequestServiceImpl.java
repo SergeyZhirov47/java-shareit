@@ -6,6 +6,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.common.OffsetBasedPageRequest;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.DaoItem;
 import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestMapper;
@@ -17,7 +19,9 @@ import ru.practicum.shareit.user.repository.DaoUser;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
 
@@ -26,6 +30,7 @@ import static java.util.Objects.nonNull;
 public class ItemRequestServiceImpl implements ItemRequestService {
     private final ItemRequestRepository itemRequestRepository;
     private final DaoUser daoUser;
+    private final DaoItem daoItem;
 
     private final Sort itemRequestCreatedSort = Sort.by("created");
 
@@ -51,6 +56,10 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         daoUser.checkUserExists(userId);
 
         final List<ItemRequest> itemRequests = itemRequestRepository.findByRequestorId(userId, itemRequestCreatedSort.descending());
+
+        // Устанавливаем предметы по запросам
+        getAndSetItemsForItemRequests(itemRequests);
+
         return ItemRequestMapper.toItemRequestDtoList(itemRequests);
     }
 
@@ -70,12 +79,20 @@ public class ItemRequestServiceImpl implements ItemRequestService {
             itemRequests = itemRequestRepository.findByRequestorIdNot(userId, itemRequestCreatedSort.descending());
         }
 
+        // Устанавливаем предметы по запросам
+        getAndSetItemsForItemRequests(itemRequests);
+
         return ItemRequestMapper.toItemRequestDtoList(itemRequests);
     }
 
     @Override
     public ItemRequestDto getItemRequestById(long id) {
         final ItemRequest itemRequest = getById(id);
+
+        // Получаем вещи по данному запросу
+        final List<Item> itemsForRequest = daoItem.findItemsForItemRequest(id);
+        itemRequest.setItemsByRequest(itemsForRequest);
+
         return ItemRequestMapper.toItemRequestDto(itemRequest);
     }
 
@@ -98,5 +115,15 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         itemRequestEntity = itemRequestRepository.save(itemRequestEntity);
 
         return itemRequestEntity;
+    }
+
+    private void getAndSetItemsForItemRequests(List<ItemRequest> itemRequests) {
+        if (!itemRequests.isEmpty()) {
+            final List<Long> requestIds = itemRequests.stream().map(ItemRequest::getId).collect(Collectors.toUnmodifiableList());
+            final Map<Long, List<Item>> itemsMap = daoItem.findItemsForItemRequests(requestIds);
+            for (ItemRequest request : itemRequests) {
+                request.setItemsByRequest(itemsMap.get(request.getId()));
+            }
+        }
     }
 }
