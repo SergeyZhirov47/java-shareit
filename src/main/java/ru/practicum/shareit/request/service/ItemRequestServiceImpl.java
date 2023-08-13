@@ -79,6 +79,12 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         return ItemRequestMapper.toItemRequestDto(itemRequest);
     }
 
+    @Override
+    public ItemRequestDto getItemRequestById(long id, long userId) {
+        daoUser.checkUserExists(userId);
+        return getItemRequestById(id);
+    }
+
     private ItemRequest getById(long id) {
         final Optional<ItemRequest> itemRequest = itemRequestRepository.findById(id);
         return itemRequest.orElseThrow(() -> new ItemRequestNotFoundException(id));

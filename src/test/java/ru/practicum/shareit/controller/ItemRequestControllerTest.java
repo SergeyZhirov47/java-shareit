@@ -34,8 +34,6 @@ public class ItemRequestControllerTest {
     private final MockMvc mockMvc;
     private final ObjectMapper objectMapper;
     @MockBean
-    private final DaoUser daoUser;
-    @MockBean
     private final ItemRequestService itemRequestService;
 
     private final long userId = 1;
@@ -206,7 +204,7 @@ public class ItemRequestControllerTest {
     @SneakyThrows
     @Test
     public void getItemRequest_whenOk_thenReturnOk() {
-        Mockito.when(itemRequestService.getItemRequestById(requestId))
+        Mockito.when(itemRequestService.getItemRequestById(requestId, userId))
                 .thenReturn(defaultEmptyItemRequestDto);
 
         mockMvc.perform(get(BASE_ENDPOINT + "/{requestId}", requestId)
@@ -216,13 +214,13 @@ public class ItemRequestControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        verify(itemRequestService).getItemRequestById(requestId);
+        verify(itemRequestService).getItemRequestById(requestId, userId);
     }
 
     @SneakyThrows
     @Test
     public void getItemRequest_whenRequestNotExists_thenReturn404() {
-        Mockito.when(itemRequestService.getItemRequestById(requestId))
+        Mockito.when(itemRequestService.getItemRequestById(requestId, userId))
                         .thenThrow(ItemRequestNotFoundException.class);
 
         mockMvc.perform(get(BASE_ENDPOINT + "/{requestId}", requestId)
@@ -232,13 +230,14 @@ public class ItemRequestControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
 
-        verify(itemRequestService).getItemRequestById(requestId);
+        verify(itemRequestService).getItemRequestById(requestId, userId);
     }
 
     @SneakyThrows
     @Test
     public void getItemRequest_whenUserNotExists_thenReturn404() {
-        doThrow(UserNotFoundException.class).when(daoUser).checkUserExists(userId);
+        Mockito.when(itemRequestService.getItemRequestById(requestId, userId))
+                .thenThrow(UserNotFoundException.class);
 
         mockMvc.perform(get(BASE_ENDPOINT + "/{requestId}", requestId)
                         .header(USER_ID_REQUEST_HEADER, userId)
@@ -247,6 +246,6 @@ public class ItemRequestControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
 
-        verify(itemRequestService, never()).getItemRequestById(requestId);
+        verify(itemRequestService).getItemRequestById(requestId, userId);
     }
 }
