@@ -127,7 +127,11 @@ public class ItemServiceIT {
         val commentsToItem = itemFromService.getComments();
         assertFalse(commentsToItem.isEmpty());
         assertEquals(itemComments.size(), commentsToItem.size());
-        assertEquals(itemComments, commentsToItem);
+
+        // Даты различаются на наносекунды.
+        assertThat(itemComments).usingRecursiveComparison()
+                .ignoringFields("created")
+                .isEqualTo(commentsToItem);
     }
 
     @Test

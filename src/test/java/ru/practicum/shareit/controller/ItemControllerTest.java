@@ -194,7 +194,6 @@ public class ItemControllerTest {
                 .andExpect(jsonPath("$.name").value(updatedItem.getName()))
                 .andExpect(jsonPath("$.description").value(updatedItem.getDescription()))
                 .andExpect(jsonPath("$.available").value(updatedItem.getIsAvailable()));
-        ;
 
         verify(itemService).update(itemId, updatedItem, userId);
     }

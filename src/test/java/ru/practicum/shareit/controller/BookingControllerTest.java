@@ -224,7 +224,7 @@ public class BookingControllerTest {
     @Test
     public void getBookingsByItemOwner_whenUserNotExists_thenReturn404() {
         Mockito.when(bookingService.getBookingsByItemOwner(userId, BookingStateForSearch.ALL, null, null))
-                        .thenThrow(UserNotFoundException.class);
+                .thenThrow(UserNotFoundException.class);
 
         mockMvc.perform(get(BASE_ENDPOINT + "/owner")
                         .header(USER_ID_REQUEST_HEADER, userId)

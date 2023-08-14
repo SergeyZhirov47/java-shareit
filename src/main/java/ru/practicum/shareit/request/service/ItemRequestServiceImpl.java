@@ -21,9 +21,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.toUnmodifiableList;
 
 @Service
 @RequiredArgsConstructor
@@ -118,12 +118,14 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     private void getAndSetItemsForItemRequests(List<ItemRequest> itemRequests) {
-        if (!itemRequests.isEmpty()) {
-            final List<Long> requestIds = itemRequests.stream().map(ItemRequest::getId).collect(Collectors.toUnmodifiableList());
-            final Map<Long, List<Item>> itemsMap = daoItem.findItemsForItemRequests(requestIds);
-            for (ItemRequest request : itemRequests) {
-                request.setItemsByRequest(itemsMap.get(request.getId()));
-            }
+        if (itemRequests.isEmpty()) {
+            return;
+        }
+
+        final List<Long> requestIds = itemRequests.stream().map(ItemRequest::getId).collect(toUnmodifiableList());
+        final Map<Long, List<Item>> itemsMap = daoItem.findItemsForItemRequests(requestIds);
+        for (ItemRequest request : itemRequests) {
+            request.setItemsByRequest(itemsMap.get(request.getId()));
         }
     }
 }

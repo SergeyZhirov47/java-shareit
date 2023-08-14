@@ -136,20 +136,20 @@ public class CommentRepositoryTest {
             owner1Items = new ArrayList<>();
             owner2Items = new ArrayList<>();
 
-           final int owner1ItemsCount = 1;
-           for (int count = 1; count <= owner1ItemsCount; count++) {
-               Item item = Item.builder()
-                       .owner(owner1)
-                       .name("owner1 Item " + count)
-                       .description("item owner1 for test")
-                       .isAvailable(true)
-                       .build();
-               daoItem.save(item);
+            final int owner1ItemsCount = 1;
+            for (int count = 1; count <= owner1ItemsCount; count++) {
+                Item item = Item.builder()
+                        .owner(owner1)
+                        .name("owner1 Item " + count)
+                        .description("item owner1 for test")
+                        .isAvailable(true)
+                        .build();
+                daoItem.save(item);
 
-               owner1Items.add(item);
-           }
+                owner1Items.add(item);
+            }
 
-           final int owner2ItemsCount = 3;
+            final int owner2ItemsCount = 3;
             for (int count = 1; count <= owner2ItemsCount; count++) {
                 Item item = Item.builder()
                         .owner(owner2)
@@ -169,16 +169,16 @@ public class CommentRepositoryTest {
             final int commentsCount = 3;
 
             for (int counter = 1; counter <= commentsCount; counter++) {
-               for (Item item : owner1Items) {
-                   Comment comment = Comment.builder()
-                           .item(item)
-                           .author(commentator)
-                           .created(LocalDateTime.now())
-                           .text("some comment text " + counter)
-                           .build();
-                   comment = commentRepository.save(comment);
-                   comments.add(comment);
-               }
+                for (Item item : owner1Items) {
+                    Comment comment = Comment.builder()
+                            .item(item)
+                            .author(commentator)
+                            .created(LocalDateTime.now())
+                            .text("some comment text " + counter)
+                            .build();
+                    comment = commentRepository.save(comment);
+                    comments.add(comment);
+                }
             }
 
             final List<Long> itemIds = owner1Items.stream().map(Item::getId).collect(Collectors.toList());
