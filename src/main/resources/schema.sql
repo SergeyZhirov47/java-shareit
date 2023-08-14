@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS items (
     request_id BIGINT,
     CONSTRAINT pk_items PRIMARY KEY (id),
     CONSTRAINT fk_users_items FOREIGN KEY (owner_id) REFERENCES users(id),
-    CONSTRAINT fk_requests_items FOREIGN KEY (request_id) REFERENCES requests(id)
+    CONSTRAINT fk_requests_items FOREIGN KEY (request_id) REFERENCES requests(id) ON DELETE SET NULL
 );
 
 -- ToDo
