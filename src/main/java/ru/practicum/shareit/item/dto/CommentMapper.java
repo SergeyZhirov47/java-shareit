@@ -13,7 +13,7 @@ public class CommentMapper extends AbstractMapper {
     public Comment toComment(CommentCreateDto commentCreateDto) {
         return Comment.builder()
                 .text(commentCreateDto.getText())
-                .created(LocalDateTime.now())
+                .created(LocalDateTime.now().withNano(0))
                 .build();
     }
 
