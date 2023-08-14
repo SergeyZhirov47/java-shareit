@@ -9,7 +9,6 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.BookingStateForSearch;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.booking.validation.BookingStateForSearchValidator;
-import ru.practicum.shareit.common.Utils;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
@@ -68,7 +67,6 @@ public class BookingController {
         final String logStr = "GET /bookings?state={state}&from={from}&size={size}, {state} = %s, {from} = %s, {size} = %s, %s = %s";
         log.info(String.format(logStr, stateStr, from, size, USER_ID_REQUEST_HEADER, userId));
         final BookingStateForSearch state = BookingStateForSearchValidator.validateAndGet(stateStr);
-        Utils.validatePageableParams(from, size);
         final List<BookingDto> userBookings = bookingService.getUserBookingsByState(userId, state, from, size);
         log.info(String.format("Список всех заявок на бронирование, созданных пользователем id = %s успешно получен", userId));
 
@@ -84,7 +82,6 @@ public class BookingController {
         final String logStr = "GET /bookings/owner?state={state}&from={from}&size={size}, {state} = %s, {from} = %s, {size} = %s, %s = %s";
         log.info(String.format(logStr, stateStr, from, size, USER_ID_REQUEST_HEADER, ownerId));
         final BookingStateForSearch state = BookingStateForSearchValidator.validateAndGet(stateStr);
-        Utils.validatePageableParams(from, size);
         final List<BookingDto> ownerBookings = bookingService.getBookingsByItemOwner(ownerId, state, from, size);
         log.info(String.format("Список всех заявок на бронирование вещей пользователя id = %s успешно получен", ownerId));
 

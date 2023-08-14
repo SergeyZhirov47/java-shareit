@@ -418,36 +418,6 @@ public class ItemControllerTest {
 
     @SneakyThrows
     @Test
-    public void getAllOwnerItems_whenHasFromAndNoSize_thenReturn400() {
-        final Integer from = 0;
-        Mockito.when(itemService.getAllOwnerItems(userId, from, null)).thenReturn(Collections.emptyList());
-
-        mockMvc.perform(get(BASE_ENDPOINT)
-                        .header(USER_ID_REQUEST_HEADER, userId)
-                        .param("from", String.valueOf(from))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-    }
-
-    @SneakyThrows
-    @Test
-    public void getAllOwnerItems_whenNoFromAndHasSize_thenReturn400() {
-        final Integer size = 10;
-        Mockito.when(itemService.getAllOwnerItems(userId, null, size)).thenReturn(Collections.emptyList());
-
-        mockMvc.perform(get(BASE_ENDPOINT)
-                        .header(USER_ID_REQUEST_HEADER, userId)
-                        .param("size", String.valueOf(size))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-    }
-
-    @SneakyThrows
-    @Test
     public void getAllOwnerItems_whenFromAndHasIsZero_thenReturn500() {
         final Integer from = 0;
         final Integer size = 0;

@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.common.Utils;
 import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.service.ItemService;
 
@@ -62,7 +61,6 @@ public class ItemController {
                                                             @PositiveOrZero @RequestParam(name = "from", required = false) Integer from,
                                                             @Positive @RequestParam(name = "size", required = false) Integer size) {
         log.info(String.format("GET /items?from={from}&size={size}, {from} = %s, {size} = %s, %s = %s", from, size, USER_ID_REQUEST_HEADER, ownerId));
-        Utils.validatePageableParams(from, size);
         final List<ItemWithAdditionalDataDto> ownerItems = itemService.getAllOwnerItems(ownerId, from, size);
         log.info(String.format("Успешно получены вещи (%s штук) пользователя с id = %s", ownerItems.size(), ownerId));
 
@@ -78,7 +76,6 @@ public class ItemController {
                                      @Positive @RequestParam(name = "size", required = false) Integer size) {
         final String logStr = "GET /items/search?text=text&from={from}&size={size}, text = %s, {from} = %s, {size} = %s, %s = %s";
         log.info(String.format(logStr, text, from, size, USER_ID_REQUEST_HEADER, userId));
-        Utils.validatePageableParams(from, size);
         final List<ItemDto> searchedItems = itemService.searchItems(text, userId, from, size);
         log.info(String.format("Успешно получены вещи (%s штук) по запросу \"%s\" пользователя с id = %s", searchedItems.size(), text, userId));
 
