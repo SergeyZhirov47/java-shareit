@@ -2,11 +2,14 @@ package ru.practicum.shareit.booking.repository;
 
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.PathBuilderFactory;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLTemplates;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.support.Querydsl;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStateForSearch;
 import ru.practicum.shareit.booking.model.BookingStatus;
@@ -30,6 +33,16 @@ public class CustomBookingRepositoryImpl implements CustomBookingRepository {
 
     public CustomBookingRepositoryImpl(EntityManager entityManager) {
         queryFactory = new JPAQueryFactory(JPQLTemplates.DEFAULT, entityManager);
+    }
+
+    // Условие - Все заявки на бронирование вещей данного пользователя.
+    private static BooleanExpression getBookingsByItemsOwnerExpression(long ownerId) {
+        return QBooking.booking.item.owner.id.eq(ownerId);
+    }
+
+    // Условие -Все заявки на бронирование, созданные пользователем.
+    private static BooleanExpression getBookingsCreateByUserExpression(long userId) {
+        return QBooking.booking.booker.id.eq(userId);
     }
 
     @Override
@@ -106,32 +119,47 @@ public class CustomBookingRepositoryImpl implements CustomBookingRepository {
 
     @Override
     public List<Booking> getUserBookingsByState(long userId, BookingStateForSearch searchState) {
-        // условие сформированное исходя из searchState.
-        final BooleanExpression searchStateExpression = getSearchExpressionByState(searchState);
+        final BooleanExpression userBookingsExpression = getBookingsCreateByUserExpression(userId);
+        return getBookingsBySearchState(userBookingsExpression, searchState, null);
 
-        // Все заявки на бронирование, созданные пользователем.
-        final BooleanExpression userBookingsExpression = QBooking.booking.booker.id.eq(userId)
-                .and(searchStateExpression);
-
-        return queryFactory.selectFrom(QBooking.booking)
-                .where(userBookingsExpression)
-                .orderBy(QBooking.booking.start.desc())
-                .fetch();
     }
 
     @Override
     public List<Booking> getBookingsByItemOwner(long ownerId, BookingStateForSearch searchState) {
-        // условие сформированное исходя из searchState.
-        final BooleanExpression searchStateExpression = getSearchExpressionByState(searchState);
-
         // Все заявки на бронирование вещей данного пользователя.
-        BooleanExpression bookingsByItemsOwnerExpression = QBooking.booking.item.owner.id.eq(ownerId)
-                .and(searchStateExpression);
+        final BooleanExpression bookingsByItemsOwnerExpression = getBookingsByItemsOwnerExpression(ownerId);
+        return getBookingsBySearchState(bookingsByItemsOwnerExpression, searchState, null);
+    }
 
-        return queryFactory.selectFrom(QBooking.booking)
-                .where(bookingsByItemsOwnerExpression)
-                .orderBy(QBooking.booking.start.desc())
-                .fetch();
+    @Override
+    public List<Booking> getUserBookingsByState(long userId, BookingStateForSearch searchState, Pageable pageable) {
+        final BooleanExpression userBookingsExpression = getBookingsCreateByUserExpression(userId);
+        return getBookingsBySearchState(userBookingsExpression, searchState, pageable);
+    }
+
+    @Override
+    public List<Booking> getBookingsByItemOwner(long ownerId, BookingStateForSearch searchState, Pageable pageable) {
+        final BooleanExpression bookingsByItemsOwnerExpression = getBookingsByItemsOwnerExpression(ownerId);
+        return getBookingsBySearchState(bookingsByItemsOwnerExpression, searchState, pageable);
+    }
+
+    private List<Booking> getBookingsBySearchState(BooleanExpression expression, BookingStateForSearch searchState, Pageable pageable) {
+        final BooleanExpression searchStateExpression = getSearchExpressionByState(searchState); // условие сформированное исходя из searchState.
+        final BooleanExpression finalExpression = expression.and(searchStateExpression);
+
+        final JPAQuery<Booking> query = queryFactory.selectFrom(QBooking.booking)
+                .where(finalExpression)
+                .orderBy(QBooking.booking.start.desc());
+
+        final List<Booking> result;
+        if (nonNull(pageable)) {
+            final Querydsl querydsl = new Querydsl(entityManager, (new PathBuilderFactory()).create(QBooking.class));
+            result = querydsl.applyPagination(pageable, query).fetch();
+        } else {
+            result = query.fetch();
+        }
+
+        return result;
     }
 
     private BooleanExpression getSearchExpressionByState(BookingStateForSearch searchState) {
@@ -190,14 +218,6 @@ public class CustomBookingRepositoryImpl implements CustomBookingRepository {
 
         private BooleanExpression getNextBooking(LocalDateTime startDate) {
             return booking.start.after(startDate);
-        }
-
-        private BooleanExpression getLastBookingApproved(LocalDateTime endDate) {
-            return getApproved().and(getLastBooking(endDate));
-        }
-
-        private BooleanExpression getNextBookingApproved(LocalDateTime startDate) {
-            return getApproved().and(getNextBooking(startDate));
         }
 
         private BooleanExpression getLastBooking(long itemId, LocalDateTime endDate) {

@@ -9,7 +9,7 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.exception.EmailAlreadyUsedException;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.UserRepository;
+import ru.practicum.shareit.user.repository.DaoUser;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,18 +19,18 @@ import static java.util.Objects.nonNull;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final UserRepository userRepository;
+    private final DaoUser daoUser;
 
     @Transactional(readOnly = true)
     @Override
     public UserDto getById(long id) {
-        return UserMapper.toUserDto(userRepository.getUserById(id));
+        return UserMapper.toUserDto(daoUser.getUserById(id));
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<UserDto> getAll() {
-        final List<User> users = userRepository.findAll();
+        final List<User> users = daoUser.findAll();
         return users.stream().map(UserMapper::toUserDto).collect(Collectors.toUnmodifiableList());
     }
 
@@ -41,7 +41,7 @@ public class UserServiceImpl implements UserService {
 
         // По тестам postman получается, что теперь БД будет "проверять" уникальность email.
         try {
-            user = userRepository.save(user);
+            user = daoUser.save(user);
         } catch (DataIntegrityViolationException exp) {
             throw new EmailAlreadyUsedException(String.format("Пользователь с email = %s уже существует!", user.getEmail()));
         }
@@ -60,25 +60,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto update(long id, UserDto userDto) {
         // Получение и проверка, что пользователь есть.
-        final User user = userRepository.getUserById(id);
-
+        final User user = daoUser.getUserById(id);
         // Формируем пользователя с измененными полями.
         final User changedUser = UserMapper.updateIfDifferent(user, userDto);
-
-        User updatedUser;
-        if (user.equals(changedUser)) {
-            updatedUser = user;
-        } else {
-            // Если все-таки различия есть, то проверяем почту.
-            final String oldEmail = user.getEmail();
-            final String newEmail = changedUser.getEmail();
-
-            if (!oldEmail.equals(newEmail) && checkNotBlankEmail(newEmail)) {
-                checkExistsUserEmail(newEmail);
-            }
-
-            updatedUser = userRepository.save(changedUser);
-        }
+        // Проверяем, что еще нет пользователя с такой же почтой (и это не наш текущий пользователь)
+        checkExistsUserEmail(changedUser.getEmail(), id);
+        final User updatedUser = daoUser.save(changedUser);
 
         return UserMapper.toUserDto(updatedUser);
     }
@@ -88,15 +75,15 @@ public class UserServiceImpl implements UserService {
     public void delete(long id) {
         // Потом наверное будут нужны доп. проверки.
         // Нельзя удалять пользователя, у которого есть вещи. Ну вещи есть, но они не используются.
-        userRepository.deleteById(id);
+        daoUser.deleteById(id);
     }
 
     private boolean checkNotBlankEmail(final String email) {
         return nonNull(email) && !email.isBlank();
     }
 
-    private void checkExistsUserEmail(final String email) {
-        if (userRepository.existsByEmail(email)) {
+    private void checkExistsUserEmail(final String email, long userId) {
+        if (daoUser.isOtherUserHasSameEmail(email, userId)) {
             throw new EmailAlreadyUsedException(String.format("Пользователь с email = %s уже существует!", email));
         }
     }

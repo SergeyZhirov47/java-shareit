@@ -6,6 +6,11 @@ import ru.practicum.shareit.common.AbstractMapper;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.user.dto.UserMapper;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import static java.util.Objects.isNull;
 
 @UtilityClass
@@ -21,6 +26,13 @@ public class BookingMapper extends AbstractMapper {
                 .booker(UserMapper.toUserDto(booking.getBooker()))
                 .status(booking.getStatus())
                 .build();
+    }
+
+    public List<BookingDto> toBookingDtoList(List<Booking> bookingList) {
+        return Stream.ofNullable(bookingList)
+                .flatMap(Collection::stream)
+                .map(BookingMapper::toBookingDto)
+                .collect(Collectors.toUnmodifiableList());
     }
 
     public BookingForItemDto toBookingForItemDto(Booking booking) {
