@@ -372,7 +372,7 @@ public class ItemControllerTest {
     @SneakyThrows
     @Test
     public void getAllOwnerItems_whenOk_thenReturnItems() {
-        Mockito.when(itemService.getAllOwnerItems(userId, null, null)).thenReturn(Collections.emptyList());
+        Mockito.when(itemService.getAllOwnerItems(userId, 0, 10)).thenReturn(Collections.emptyList());
 
         mockMvc.perform(get(BASE_ENDPOINT)
                         .header(USER_ID_REQUEST_HEADER, userId)
@@ -381,7 +381,7 @@ public class ItemControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        verify(itemService).getAllOwnerItems(userId, null, null);
+        verify(itemService).getAllOwnerItems(userId, 0, 10);
     }
 
     @SneakyThrows
@@ -406,7 +406,7 @@ public class ItemControllerTest {
     @SneakyThrows
     @Test
     public void getAllOwnerItems_whenUserNotExists_thenReturn404() {
-        Mockito.when(itemService.getAllOwnerItems(userId, null, null)).thenThrow(UserNotFoundException.class);
+        Mockito.when(itemService.getAllOwnerItems(userId, 0, 10)).thenThrow(UserNotFoundException.class);
 
         mockMvc.perform(get(BASE_ENDPOINT)
                         .header(USER_ID_REQUEST_HEADER, userId)

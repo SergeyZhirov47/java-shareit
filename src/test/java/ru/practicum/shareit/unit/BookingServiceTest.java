@@ -16,7 +16,6 @@ import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.booking.service.BookingServiceImpl;
 import ru.practicum.shareit.common.NotFoundException;
-import ru.practicum.shareit.common.ValidationException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.DaoItem;
@@ -310,56 +309,6 @@ public class BookingServiceTest {
 
         verify(daoUser).checkUserExists(anyLong());
         verify(bookingRepository).getUserBookingsByState(anyLong(), any(BookingStateForSearch.class), any(Pageable.class));
-    }
-
-    @Test
-    public void getUserBookingsByState_whenWithPageable00_thenThrowException() {
-        final Integer from = 0;
-        final Integer size = 0;
-        assertThrows(ValidationException.class, () -> bookingService.getUserBookingsByState(bookerId, BookingStateForSearch.ALL, from, size));
-
-        verify(daoUser, never()).checkUserExists(anyLong());
-        verify(bookingRepository, never()).getUserBookingsByState(anyLong(), any(BookingStateForSearch.class), any(Pageable.class));
-    }
-
-    @Test
-    public void getUserBookingsByState_whenWithPageableFromNegative_thenThrowException() {
-        final Integer from = -1;
-        final Integer size = 10;
-        assertThrows(ValidationException.class, () -> bookingService.getUserBookingsByState(bookerId, BookingStateForSearch.ALL, from, size));
-
-        verify(daoUser, never()).checkUserExists(anyLong());
-        verify(bookingRepository, never()).getUserBookingsByState(anyLong(), any(BookingStateForSearch.class), any(Pageable.class));
-    }
-
-    @Test
-    public void getUserBookingsByState_wheWithPageableSizeNegative_thenThrowException() {
-        final Integer from = 0;
-        final Integer size = -100;
-        assertThrows(ValidationException.class, () -> bookingService.getUserBookingsByState(bookerId, BookingStateForSearch.ALL, from, size));
-
-        verify(daoUser, never()).checkUserExists(anyLong());
-        verify(bookingRepository, never()).getUserBookingsByState(anyLong(), any(BookingStateForSearch.class), any(Pageable.class));
-    }
-
-    @Test
-    public void getUserBookingsByState_whenWithPageableFromNull_thenThrowException() {
-        final Integer from = null;
-        final Integer size = 100;
-        assertThrows(ValidationException.class, () -> bookingService.getUserBookingsByState(bookerId, BookingStateForSearch.ALL, from, size));
-
-        verify(daoUser, never()).checkUserExists(anyLong());
-        verify(bookingRepository, never()).getUserBookingsByState(anyLong(), any(BookingStateForSearch.class), any(Pageable.class));
-    }
-
-    @Test
-    public void getUserBookingsByState_whenWithPageableSizeNull_thenThrowException() {
-        final Integer from = 0;
-        final Integer size = null;
-        assertThrows(ValidationException.class, () -> bookingService.getUserBookingsByState(bookerId, BookingStateForSearch.ALL, from, size));
-
-        verify(daoUser, never()).checkUserExists(anyLong());
-        verify(bookingRepository, never()).getUserBookingsByState(anyLong(), any(BookingStateForSearch.class), any(Pageable.class));
     }
 
     @Test

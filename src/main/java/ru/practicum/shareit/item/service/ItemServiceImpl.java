@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.common.Utils;
 import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.exception.NotOwnerAccessException;
 import ru.practicum.shareit.item.model.Comment;
@@ -128,7 +127,6 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(readOnly = true)
     @Override
     public List<ItemWithAdditionalDataDto> getAllOwnerItems(long ownerId, Integer from, Integer size) {
-        Utils.validatePageableParams(from, size);
         return getAllOwnerItems(ownerId, createOffsetBasedPageRequest(from, size));
     }
 
@@ -185,7 +183,6 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(readOnly = true)
     @Override
     public List<ItemDto> searchItems(String text, long userId, Integer from, Integer size) {
-        Utils.validatePageableParams(from, size);
         return searchItems(text, userId, createOffsetBasedPageRequest(from, size));
     }
 

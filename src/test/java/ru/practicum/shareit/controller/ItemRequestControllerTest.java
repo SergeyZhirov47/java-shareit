@@ -152,7 +152,7 @@ public class ItemRequestControllerTest {
     @SneakyThrows
     @Test
     public void getAllItemRequests_whenOk_thenReturnOk() {
-        Mockito.when(itemRequestService.getAllItemRequests(userId, null, null))
+        Mockito.when(itemRequestService.getAllItemRequests(userId, 0, 10))
                 .thenReturn(Collections.emptyList());
 
         mockMvc.perform(get(BASE_ENDPOINT + "/all")
@@ -162,13 +162,13 @@ public class ItemRequestControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        verify(itemRequestService).getAllItemRequests(userId, null, null);
+        verify(itemRequestService).getAllItemRequests(userId, 0, 10);
     }
 
     @SneakyThrows
     @Test
     public void getAllItemRequests_whenUserNotExists_thenReturn404() {
-        Mockito.when(itemRequestService.getAllItemRequests(userId, null, null))
+        Mockito.when(itemRequestService.getAllItemRequests(userId, 0, 10))
                 .thenThrow(UserNotFoundException.class);
 
         mockMvc.perform(get(BASE_ENDPOINT + "/all")
@@ -178,7 +178,7 @@ public class ItemRequestControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
 
-        verify(itemRequestService).getAllItemRequests(userId, null, null);
+        verify(itemRequestService).getAllItemRequests(userId, 0, 10);
     }
 
     @SneakyThrows

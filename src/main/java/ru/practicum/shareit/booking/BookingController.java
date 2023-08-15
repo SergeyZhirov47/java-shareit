@@ -62,8 +62,8 @@ public class BookingController {
     @GetMapping
     public List<BookingDto> getUserBookingsByState(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
                                                    @RequestParam(name = "state", required = false) String stateStr,
-                                                   @PositiveOrZero @RequestParam(name = "from", required = false) Integer from,
-                                                   @Positive @RequestParam(name = "size", required = false) Integer size) {
+                                                   @PositiveOrZero @RequestParam(name = "from", required = false, defaultValue = "0") Integer from,
+                                                   @Positive @RequestParam(name = "size", required = false, defaultValue = "10") Integer size) {
         final String logStr = "GET /bookings?state={state}&from={from}&size={size}, {state} = %s, {from} = %s, {size} = %s, %s = %s";
         log.info(String.format(logStr, stateStr, from, size, USER_ID_REQUEST_HEADER, userId));
         final BookingStateForSearch state = BookingStateForSearchValidator.validateAndGet(stateStr);
@@ -77,8 +77,8 @@ public class BookingController {
     @GetMapping("/owner")
     public List<BookingDto> getBookingsByItemOwner(@RequestHeader(USER_ID_REQUEST_HEADER) long ownerId,
                                                    @RequestParam(name = "state", required = false) String stateStr,
-                                                   @PositiveOrZero @RequestParam(name = "from", required = false) Integer from,
-                                                   @Positive @RequestParam(name = "size", required = false) Integer size) {
+                                                   @PositiveOrZero @RequestParam(name = "from", required = false, defaultValue = "0") Integer from,
+                                                   @Positive @RequestParam(name = "size", required = false, defaultValue = "10") Integer size) {
         final String logStr = "GET /bookings/owner?state={state}&from={from}&size={size}, {state} = %s, {from} = %s, {size} = %s, %s = %s";
         log.info(String.format(logStr, stateStr, from, size, USER_ID_REQUEST_HEADER, ownerId));
         final BookingStateForSearch state = BookingStateForSearchValidator.validateAndGet(stateStr);

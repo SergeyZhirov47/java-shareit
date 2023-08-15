@@ -6,7 +6,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.common.OffsetBasedPageRequest;
-import ru.practicum.shareit.common.Utils;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.DaoItem;
 import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
@@ -69,7 +68,6 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Transactional(readOnly = true)
     @Override
     public List<ItemRequestDto> getAllItemRequests(long userId, Integer from, Integer size) {
-        Utils.validatePageableParams(from, size);
         daoUser.checkUserExists(userId);
 
         List<ItemRequest> itemRequests;

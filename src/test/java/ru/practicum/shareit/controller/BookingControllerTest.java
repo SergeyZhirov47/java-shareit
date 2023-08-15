@@ -140,7 +140,7 @@ public class BookingControllerTest {
     @SneakyThrows
     @Test
     public void getUserBookingsByState_whenOk_thenReturnOk() {
-        Mockito.when(bookingService.getUserBookingsByState(userId, BookingStateForSearch.ALL, null, null))
+        Mockito.when(bookingService.getUserBookingsByState(userId, BookingStateForSearch.ALL, 0, 10))
                 .thenReturn(Collections.emptyList());
 
         mockMvc.perform(get(BASE_ENDPOINT)
@@ -150,13 +150,13 @@ public class BookingControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        verify(bookingService).getUserBookingsByState(userId, BookingStateForSearch.ALL, null, null);
+        verify(bookingService).getUserBookingsByState(userId, BookingStateForSearch.ALL, 0, 10);
     }
 
     @SneakyThrows
     @Test
     public void getUserBookingsByState_whenUserNotExists_thenReturn404() {
-        Mockito.when(bookingService.getUserBookingsByState(userId, BookingStateForSearch.ALL, null, null))
+        Mockito.when(bookingService.getUserBookingsByState(userId, BookingStateForSearch.ALL, 0, 10))
                 .thenThrow(UserNotFoundException.class);
 
         mockMvc.perform(get(BASE_ENDPOINT)
@@ -166,7 +166,7 @@ public class BookingControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
 
-        verify(bookingService).getUserBookingsByState(userId, BookingStateForSearch.ALL, null, null);
+        verify(bookingService).getUserBookingsByState(userId, BookingStateForSearch.ALL, 0, 10);
     }
 
     @SneakyThrows
@@ -174,7 +174,7 @@ public class BookingControllerTest {
     public void getUserBookingsByState_whenHasState_thenReturnOk() {
         final BookingStateForSearch state = BookingStateForSearch.ALL;
         final String stateStr = state.name();
-        Mockito.when(bookingService.getUserBookingsByState(userId, state, null, null))
+        Mockito.when(bookingService.getUserBookingsByState(userId, state, 0, 10))
                 .thenReturn(Collections.emptyList());
 
         mockMvc.perform(get(BASE_ENDPOINT)
@@ -185,7 +185,7 @@ public class BookingControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        verify(bookingService).getUserBookingsByState(userId, state, null, null);
+        verify(bookingService).getUserBookingsByState(userId, state, 0, 10);
     }
 
     @SneakyThrows
@@ -207,7 +207,7 @@ public class BookingControllerTest {
     @SneakyThrows
     @Test
     public void getBookingsByItemOwner_whenOk_thenReturnOk() {
-        Mockito.when(bookingService.getBookingsByItemOwner(userId, BookingStateForSearch.ALL, null, null))
+        Mockito.when(bookingService.getBookingsByItemOwner(userId, BookingStateForSearch.ALL, 0, 10))
                 .thenReturn(Collections.emptyList());
 
         mockMvc.perform(get(BASE_ENDPOINT + "/owner")
@@ -217,13 +217,13 @@ public class BookingControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        verify(bookingService).getBookingsByItemOwner(userId, BookingStateForSearch.ALL, null, null);
+        verify(bookingService).getBookingsByItemOwner(userId, BookingStateForSearch.ALL, 0, 10);
     }
 
     @SneakyThrows
     @Test
     public void getBookingsByItemOwner_whenUserNotExists_thenReturn404() {
-        Mockito.when(bookingService.getBookingsByItemOwner(userId, BookingStateForSearch.ALL, null, null))
+        Mockito.when(bookingService.getBookingsByItemOwner(userId, BookingStateForSearch.ALL, 0, 10))
                 .thenThrow(UserNotFoundException.class);
 
         mockMvc.perform(get(BASE_ENDPOINT + "/owner")
@@ -233,7 +233,7 @@ public class BookingControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
 
-        verify(bookingService).getBookingsByItemOwner(userId, BookingStateForSearch.ALL, null, null);
+        verify(bookingService).getBookingsByItemOwner(userId, BookingStateForSearch.ALL, 0, 10);
     }
 
     @SneakyThrows
@@ -241,7 +241,7 @@ public class BookingControllerTest {
     public void getBookingsByItemOwner_whenHasState_thenReturnOk() {
         final BookingStateForSearch state = BookingStateForSearch.ALL;
         final String stateStr = state.name();
-        Mockito.when(bookingService.getBookingsByItemOwner(userId, state, null, null))
+        Mockito.when(bookingService.getBookingsByItemOwner(userId, state, 0, 10))
                 .thenReturn(Collections.emptyList());
 
         mockMvc.perform(get(BASE_ENDPOINT + "/owner")
@@ -252,7 +252,7 @@ public class BookingControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        verify(bookingService).getBookingsByItemOwner(userId, state, null, null);
+        verify(bookingService).getBookingsByItemOwner(userId, state, 0, 10);
     }
 
     @SneakyThrows
@@ -260,7 +260,7 @@ public class BookingControllerTest {
     public void getBookingsByItemOwner_whenUnsupportedState_thenReturn400() {
         final String stateStr = "UNSUPPORTED STATE";
 
-        Mockito.when(bookingService.getBookingsByItemOwner(userId, BookingStateForSearch.ALL, null, null))
+        Mockito.when(bookingService.getBookingsByItemOwner(userId, BookingStateForSearch.ALL, 0, 10))
                 .thenReturn(Collections.emptyList());
 
         mockMvc.perform(get(BASE_ENDPOINT + "/owner")
