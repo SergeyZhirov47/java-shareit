@@ -74,7 +74,7 @@ public class ItemController {
                                      @RequestParam(name = "text") String text,
                                      @PositiveOrZero @RequestParam(name = "from", required = false) Integer from,
                                      @Positive @RequestParam(name = "size", required = false) Integer size) {
-        final String logStr = "GET /items/search?text=text&from={from}&size={size}, text = %s, {from} = %s, {size} = %s, %s = %s";
+        final String logStr = "GET /items/search?text={text}&from={from}&size={size}, {text} = %s, {from} = %s, {size} = %s, %s = %s";
         log.info(String.format(logStr, text, from, size, USER_ID_REQUEST_HEADER, userId));
         final List<ItemDto> searchedItems = itemService.searchItems(text, userId, from, size);
         log.info(String.format("Успешно получены вещи (%s штук) по запросу \"%s\" пользователя с id = %s", searchedItems.size(), text, userId));
