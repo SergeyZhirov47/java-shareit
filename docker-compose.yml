@@ -2,7 +2,6 @@ version: '3.8'
 services:
   gateway:
     build: ./gateway
-    image: share-it-gateway-image
     container_name: share-it-gateway
     ports:
       - "8080:8080"
@@ -13,7 +12,6 @@ services:
 
   server:
     build: ./server
-    image: share-it-server-image
     container_name: share-it-server
     ports:
       - "9090:9090"
