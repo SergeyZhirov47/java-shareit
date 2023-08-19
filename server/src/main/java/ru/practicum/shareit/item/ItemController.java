@@ -2,21 +2,16 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.service.ItemService;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 import static ru.practicum.shareit.common.ConstantParamStorage.USER_ID_REQUEST_HEADER;
 
 @RestController
 @RequestMapping("/items")
-@Validated
 @RequiredArgsConstructor
 @Slf4j
 public class ItemController {
@@ -24,7 +19,7 @@ public class ItemController {
 
     // Добавление вещи
     @PostMapping
-    public ItemDto add(@RequestHeader(USER_ID_REQUEST_HEADER) long ownerId, @Valid @RequestBody ItemCreateDto item) {
+    public ItemDto add(@RequestHeader(USER_ID_REQUEST_HEADER) long ownerId, @RequestBody ItemCreateDto item) {
         log.info(String.format("POST /items, body = %s, %s = %s", item, USER_ID_REQUEST_HEADER, ownerId));
         final ItemDto newItem = itemService.createAndGet(item, ownerId);
         log.info(String.format("Успешно добавлена вещь с id = %s", newItem.getId()));
@@ -35,7 +30,7 @@ public class ItemController {
     // Обновление информации о вещи ее владельцем
     @PatchMapping("/{itemId}")
     public ItemDto update(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
-                          @Valid @RequestBody ItemDto item,
+                          @RequestBody ItemDto item,
                           @PathVariable(name = "itemId") long itemId) {
         log.info(String.format("PATCH /items/{itemId}, body = %s, {itemId} = %s, %s = %s", item, itemId, USER_ID_REQUEST_HEADER, userId));
         final ItemDto updatedItem = itemService.update(itemId, item, userId);
@@ -58,8 +53,8 @@ public class ItemController {
     // Просмотр владельцем списка всех его вещей с указанием названия и описания для каждой
     @GetMapping
     public List<ItemWithAdditionalDataDto> getAllOwnerItems(@RequestHeader(USER_ID_REQUEST_HEADER) long ownerId,
-                                                            @PositiveOrZero @RequestParam(name = "from", required = false) Integer from,
-                                                            @Positive @RequestParam(name = "size", required = false) Integer size) {
+                                                            @RequestParam(name = "from", required = false) Integer from,
+                                                            @RequestParam(name = "size", required = false) Integer size) {
         log.info(String.format("GET /items?from={from}&size={size}, {from} = %s, {size} = %s, %s = %s", from, size, USER_ID_REQUEST_HEADER, ownerId));
         final List<ItemWithAdditionalDataDto> ownerItems = itemService.getAllOwnerItems(ownerId, from, size);
         log.info(String.format("Успешно получены вещи (%s штук) пользователя с id = %s", ownerItems.size(), ownerId));
@@ -72,8 +67,8 @@ public class ItemController {
     @GetMapping("/search")
     public List<ItemDto> searchItems(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
                                      @RequestParam(name = "text") String text,
-                                     @PositiveOrZero @RequestParam(name = "from", required = false) Integer from,
-                                     @Positive @RequestParam(name = "size", required = false) Integer size) {
+                                     @RequestParam(name = "from", required = false) Integer from,
+                                     @RequestParam(name = "size", required = false) Integer size) {
         final String logStr = "GET /items/search?text={text}&from={from}&size={size}, {text} = %s, {from} = %s, {size} = %s, %s = %s";
         log.info(String.format(logStr, text, from, size, USER_ID_REQUEST_HEADER, userId));
         final List<ItemDto> searchedItems = itemService.searchItems(text, userId, from, size);
@@ -85,7 +80,7 @@ public class ItemController {
     // Добавление комментария к вещи, которую когда-то бронировал.
     @PostMapping("/{itemId}/comment")
     public CommentDto addComment(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
-                                 @Valid @RequestBody CommentCreateDto comment,
+                                 @RequestBody CommentCreateDto comment,
                                  @PathVariable(name = "itemId") long itemId) {
         log.info(String.format("POST /items/{itemId}/comment, {itemId} = %s, %s = %s", itemId, USER_ID_REQUEST_HEADER, userId));
         final CommentDto commentDto = itemService.addComment(itemId, userId, comment);

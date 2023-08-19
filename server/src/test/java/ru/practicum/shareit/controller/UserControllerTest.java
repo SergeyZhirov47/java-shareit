@@ -20,7 +20,6 @@ import ru.practicum.shareit.user.service.UserService;
 import java.nio.charset.StandardCharsets;
 
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -62,41 +61,6 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.email").value(userDto.getEmail()));
 
         verify(userService).createAndGet(correctUser);
-    }
-
-    @SneakyThrows
-    @Test
-    public void create_thenNoEmail_thenReturnBadRequest() {
-        final UserCreateDto userWithoutEmail = UserCreateDto.builder()
-                .name("John Doe")
-                .build();
-
-        mockMvc.perform(post(BASE_ENDPOINT)
-                        .content(objectMapper.writeValueAsBytes(userWithoutEmail))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(userService, never()).createAndGet(userWithoutEmail);
-    }
-
-    @SneakyThrows
-    @Test
-    public void create_thenInvalidEmail_thenReturnBadRequest() {
-        final UserCreateDto userWithInvalidEmail = UserCreateDto.builder()
-                .name("John Doe")
-                .email("not valid email")
-                .build();
-
-        mockMvc.perform(post(BASE_ENDPOINT)
-                        .content(objectMapper.writeValueAsBytes(userWithInvalidEmail))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(userService, never()).createAndGet(userWithInvalidEmail);
     }
 
     @SneakyThrows

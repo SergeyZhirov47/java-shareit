@@ -7,19 +7,23 @@ import ru.practicum.shareit.common.ValidationException;
 import static java.util.Objects.isNull;
 
 @UtilityClass
-public class BookingStateForSearchValidator {
+public class BookingStateForSearchHelper {
     public BookingStateForSearch validateAndGet(final String stateStr) {
-        if (isNull(stateStr)) {
-            return BookingStateForSearch.ALL;
-        }
-
         BookingStateForSearch state;
         try {
-            state = BookingStateForSearch.valueOf(stateStr);
+            state = convertFromString(stateStr);
         } catch (IllegalArgumentException exp) {
             throw new ValidationException(String.format("Unknown state: %s", stateStr));
         }
 
         return state;
+    }
+
+    public BookingStateForSearch convertFromString(final String stateStr) {
+        if (isNull(stateStr)) {
+            return BookingStateForSearch.ALL;
+        }
+
+        return BookingStateForSearch.valueOf(stateStr);
     }
 }

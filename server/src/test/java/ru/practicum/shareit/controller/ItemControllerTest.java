@@ -115,64 +115,6 @@ public class ItemControllerTest {
 
     @SneakyThrows
     @Test
-    public void add_whenItemWithoutAvailable_thenReturn400() {
-        final ItemCreateDto correctItem = ItemCreateDto.builder()
-                .name("Item")
-                .description("description")
-                .build();
-
-        mockMvc.perform(post(BASE_ENDPOINT)
-                        .content(objectMapper.writeValueAsBytes(correctItem))
-                        .header(USER_ID_REQUEST_HEADER, userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(itemService, never()).createAndGet(correctItem, userId);
-    }
-
-    @SneakyThrows
-    @Test
-    public void add_whenItemHasEmptyName_thenReturn400() {
-        final ItemCreateDto correctItem = ItemCreateDto.builder()
-                .name("")
-                .description("description")
-                .isAvailable(true)
-                .build();
-
-        mockMvc.perform(post(BASE_ENDPOINT)
-                        .content(objectMapper.writeValueAsBytes(correctItem))
-                        .header(USER_ID_REQUEST_HEADER, userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(itemService, never()).createAndGet(correctItem, userId);
-    }
-
-    @SneakyThrows
-    @Test
-    public void add_whenItemWithoutDescription_thenReturn400() {
-        final ItemCreateDto correctItem = ItemCreateDto.builder()
-                .name("Item")
-                .isAvailable(true)
-                .build();
-
-        mockMvc.perform(post(BASE_ENDPOINT)
-                        .content(objectMapper.writeValueAsBytes(correctItem))
-                        .header(USER_ID_REQUEST_HEADER, userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(itemService, never()).createAndGet(correctItem, userId);
-    }
-
-    @SneakyThrows
-    @Test
     public void update_whenItemCorrect_thenReturnUpdatedItem() {
         final ItemDto updatedItem = ItemDto.builder()
                 .id(itemId)
@@ -418,63 +360,6 @@ public class ItemControllerTest {
 
     @SneakyThrows
     @Test
-    public void getAllOwnerItems_whenFromAndHasIsZero_thenReturn500() {
-        final Integer from = 0;
-        final Integer size = 0;
-        Mockito.when(itemService.getAllOwnerItems(userId, from, size)).thenReturn(Collections.emptyList());
-
-        mockMvc.perform(get(BASE_ENDPOINT)
-                        .header(USER_ID_REQUEST_HEADER, userId)
-                        .param("from", String.valueOf(from))
-                        .param("size", String.valueOf(size))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isInternalServerError());
-
-        verify(itemService, never()).getAllOwnerItems(userId, from, size);
-    }
-
-    @SneakyThrows
-    @Test
-    public void getAllOwnerItems_whenFromNegative_thenReturn500() {
-        final Integer from = -1;
-        final Integer size = 10;
-        Mockito.when(itemService.getAllOwnerItems(userId, from, size)).thenReturn(Collections.emptyList());
-
-        mockMvc.perform(get(BASE_ENDPOINT)
-                        .header(USER_ID_REQUEST_HEADER, userId)
-                        .param("from", String.valueOf(from))
-                        .param("size", String.valueOf(size))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isInternalServerError());
-
-        verify(itemService, never()).getAllOwnerItems(userId, from, size);
-    }
-
-    @SneakyThrows
-    @Test
-    public void getAllOwnerItems_whenSizeNegative_thenReturn500() {
-        final Integer from = 0;
-        final Integer size = -10;
-        Mockito.when(itemService.getAllOwnerItems(userId, from, size)).thenReturn(Collections.emptyList());
-
-        mockMvc.perform(get(BASE_ENDPOINT)
-                        .header(USER_ID_REQUEST_HEADER, userId)
-                        .param("from", String.valueOf(from))
-                        .param("size", String.valueOf(size))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isInternalServerError());
-
-        verify(itemService, never()).getAllOwnerItems(userId, from, size);
-    }
-
-    @SneakyThrows
-    @Test
     public void addComment_whenValidComment_thenReturnComment() {
         final CommentCreateDto commentCreateDto = CommentCreateDto.builder()
                 .text("Comment text")
@@ -491,25 +376,6 @@ public class ItemControllerTest {
                 .andExpect(status().isOk());
 
         verify(itemService).addComment(itemId, userId, commentCreateDto);
-    }
-
-    @SneakyThrows
-    @Test
-    public void addComment_whenEmptyComment_thenReturn400() {
-        final CommentCreateDto emptyComment = CommentCreateDto.builder()
-                .text("")
-                .build();
-
-
-        mockMvc.perform(post(BASE_ENDPOINT + "/{itemId}/comment", itemId)
-                        .header(USER_ID_REQUEST_HEADER, userId)
-                        .content(objectMapper.writeValueAsBytes(emptyComment))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(itemService, never()).addComment(itemId, userId, emptyComment);
     }
 
     @SneakyThrows

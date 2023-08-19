@@ -2,22 +2,17 @@ package ru.practicum.shareit.request;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.service.ItemRequestService;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 import static ru.practicum.shareit.common.ConstantParamStorage.USER_ID_REQUEST_HEADER;
 
 @RestController
 @RequiredArgsConstructor
-@Validated
 @RequestMapping(path = "/requests")
 @Slf4j
 public class ItemRequestController {
@@ -26,7 +21,7 @@ public class ItemRequestController {
     // добавить новый запрос вещи
     @PostMapping
     public ItemRequestDto addItemRequest(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
-                                         @Valid @RequestBody ItemRequestCreateDto itemRequest) {
+                                         @RequestBody ItemRequestCreateDto itemRequest) {
         log.info(String.format("POST /requests, body = %s, %s = %s", itemRequest, USER_ID_REQUEST_HEADER, userId));
         final ItemRequestDto newItemRequest = itemRequestService.createAndGet(itemRequest, userId);
         log.info(String.format("Успешно создан запрос на вещь. Id запроса = %s", newItemRequest.getId()));
@@ -47,8 +42,8 @@ public class ItemRequestController {
     // Получить список запросов, созданных другими пользователями
     @GetMapping("/all")
     public List<ItemRequestDto> getAllItemRequests(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
-                                                   @PositiveOrZero @RequestParam(name = "from", required = false) Integer from,
-                                                   @Positive @RequestParam(name = "size", required = false) Integer size) {
+                                                   @RequestParam(name = "from", required = false) Integer from,
+                                                   @RequestParam(name = "size", required = false) Integer size) {
         log.info(String.format("GET /requests/all?from={from}&size={size}, {from} = %s, {size} = %s, %s = %s", from, size, USER_ID_REQUEST_HEADER, userId));
         final List<ItemRequestDto> itemRequests = itemRequestService.getAllItemRequests(userId, from, size);
         log.info(String.format("Успешно получены заявки на вещи. Их кол-во %s", itemRequests.size()));

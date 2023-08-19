@@ -32,8 +32,6 @@ public class ExceptionHandler {
         return simpleHandle(exp);
     }
 
-    // ToDo
-    // Оставить или заменить на другое исключение
     @org.springframework.web.bind.annotation.ExceptionHandler(UnsupportedOperationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponseData handle(UnsupportedOperationException exp) {

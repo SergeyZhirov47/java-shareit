@@ -20,7 +20,6 @@ import ru.practicum.shareit.user.exception.UserNotFoundException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -79,42 +78,6 @@ public class ItemRequestControllerTest {
                 .andExpect(status().isNotFound());
 
         verify(itemRequestService).createAndGet(itemRequestCreateDto, userId);
-    }
-
-    @SneakyThrows
-    @Test
-    public void addItemRequest_whenDescriptionIsNull_thenReturn400() {
-        final ItemRequestCreateDto requestWithNullDescription = ItemRequestCreateDto.builder()
-                .description(null)
-                .build();
-
-        mockMvc.perform(post(BASE_ENDPOINT)
-                        .content(objectMapper.writeValueAsBytes(requestWithNullDescription))
-                        .header(USER_ID_REQUEST_HEADER, userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(itemRequestService, never()).createAndGet(requestWithNullDescription, userId);
-    }
-
-    @SneakyThrows
-    @Test
-    public void addItemRequest_whenDescriptionIsBlank_thenReturn400() {
-        final ItemRequestCreateDto requestWithNullDescription = ItemRequestCreateDto.builder()
-                .description("")
-                .build();
-
-        mockMvc.perform(post(BASE_ENDPOINT)
-                        .content(objectMapper.writeValueAsBytes(requestWithNullDescription))
-                        .header(USER_ID_REQUEST_HEADER, userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(itemRequestService, never()).createAndGet(requestWithNullDescription, userId);
     }
 
     @SneakyThrows
