@@ -9,6 +9,7 @@ services:
       - server
     environment:
       - SHAREIT_SERVER_URL=http://share-it-server:9090
+      - PORT=8080
 
   server:
     build: ./server
