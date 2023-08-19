@@ -129,7 +129,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemWithAdditionalDataDto> getAllOwnerItems(long ownerId, Integer from, Integer size) {
         Utils.validatePageableParams(from, size);
-        return getAllOwnerItems(ownerId, createOffsetBasedPageRequest(from, size));
+        return getAllOwnerItems(ownerId, createOffsetBasedPageRequest(from, size, Sort.by("id")));
     }
 
     @Transactional(readOnly = true)
