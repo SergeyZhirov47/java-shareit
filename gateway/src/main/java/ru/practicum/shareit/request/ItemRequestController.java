@@ -40,8 +40,8 @@ public class ItemRequestController {
     // Получить список запросов, созданных другими пользователями
     @GetMapping("/all")
     public ResponseEntity<Object> getAllItemRequests(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
-                                                     @PositiveOrZero @RequestParam(name = "from", required = false, defaultValue = DEFAULT_FROM_PARAM) Integer from,
-                                                     @Positive @RequestParam(name = "size", required = false, defaultValue = DEFAULT_SIZE_PARAM) Integer size) {
+                                                     @PositiveOrZero @RequestParam(name = "from", defaultValue = DEFAULT_FROM_PARAM) Integer from,
+                                                     @Positive @RequestParam(name = "size", defaultValue = DEFAULT_SIZE_PARAM) Integer size) {
         log.info(String.format("GET /requests/all?from={from}&size={size}, {from} = %s, {size} = %s, %s = %s", from, size, USER_ID_REQUEST_HEADER, userId));
         return itemRequestClient.getAllItemRequests(userId, from, size);
     }

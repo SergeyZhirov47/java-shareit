@@ -51,8 +51,8 @@ public class ItemController {
     // Просмотр владельцем списка всех его вещей с указанием названия и описания для каждой
     @GetMapping
     public ResponseEntity<Object> getAllOwnerItems(@RequestHeader(USER_ID_REQUEST_HEADER) long ownerId,
-                                                   @PositiveOrZero @RequestParam(name = "from", required = false, defaultValue = DEFAULT_FROM_PARAM) Integer from,
-                                                   @Positive @RequestParam(name = "size", required = false, defaultValue = DEFAULT_SIZE_PARAM) Integer size) {
+                                                   @PositiveOrZero @RequestParam(name = "from", defaultValue = DEFAULT_FROM_PARAM) Integer from,
+                                                   @Positive @RequestParam(name = "size", defaultValue = DEFAULT_SIZE_PARAM) Integer size) {
         log.info(String.format("GET /items?from={from}&size={size}, {from} = %s, {size} = %s, %s = %s", from, size, USER_ID_REQUEST_HEADER, ownerId));
         return itemClient.getAllOwnerItems(ownerId, from, size);
     }
@@ -62,8 +62,8 @@ public class ItemController {
     @GetMapping("/search")
     public ResponseEntity<Object> searchItems(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
                                               @RequestParam(name = "text") String text,
-                                              @PositiveOrZero @RequestParam(name = "from", required = false, defaultValue = DEFAULT_FROM_PARAM) Integer from,
-                                              @Positive @RequestParam(name = "size", required = false, defaultValue = DEFAULT_SIZE_PARAM) Integer size) {
+                                              @PositiveOrZero @RequestParam(name = "from", defaultValue = DEFAULT_FROM_PARAM) Integer from,
+                                              @Positive @RequestParam(name = "size", defaultValue = DEFAULT_SIZE_PARAM) Integer size) {
         final String logStr = "GET /items/search?text=text&from={from}&size={size}, text = %s, {from} = %s, {size} = %s, %s = %s";
         log.info(String.format(logStr, text, from, size, USER_ID_REQUEST_HEADER, userId));
         return itemClient.searchItems(text, userId, from, size);
