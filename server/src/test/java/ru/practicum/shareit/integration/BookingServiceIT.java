@@ -107,30 +107,6 @@ public class BookingServiceIT {
     }
 
     @Test
-    public void create_whenStartEqualsEnd_thenThrowException() {
-        val start = LocalDateTime.now().plusDays(3);
-        val newBookingCreateDto = BookingCreateDto.builder()
-                .itemId(item.getId())
-                .start(start)
-                .end(start)
-                .build();
-
-        assertThrows(ValidationException.class, () -> bookingService.create(newBookingCreateDto, booker.getId()));
-    }
-
-    @Test
-    public void create_whenEndBeforeStart_thenThrowException() {
-        val start = LocalDateTime.now().plusDays(3);
-        val newBookingCreateDto = BookingCreateDto.builder()
-                .itemId(item.getId())
-                .start(start)
-                .end(start.minusDays(1))
-                .build();
-
-        assertThrows(ValidationException.class, () -> bookingService.create(newBookingCreateDto, booker.getId()));
-    }
-
-    @Test
     public void approve_whenOkAndApprove_thenReturnBooking() {
         val newBookingCreateDto = BookingCreateDto.builder()
                 .itemId(item.getId())

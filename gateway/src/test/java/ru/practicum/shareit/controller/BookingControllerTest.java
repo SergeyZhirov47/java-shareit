@@ -3,6 +3,7 @@ package ru.practicum.shareit.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.val;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,7 @@ import ru.practicum.shareit.validation.ValidationException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -226,5 +228,47 @@ public class BookingControllerTest {
 
             verify(bookingClient, never()).create(bookingCreateDto, userId);
         }
+    }
+
+    @SneakyThrows
+    @Test
+    public void create_whenStartEqualsEnd_thenThrowException() {
+        val start = LocalDateTime.now().plusDays(3);
+        val bookingCreateDto = BookingCreateDto.builder()
+                .itemId(itemId)
+                .start(start)
+                .end(start)
+                .build();
+
+        mockMvc.perform(post(BASE_ENDPOINT)
+                        .content(objectMapper.writeValueAsBytes(bookingCreateDto))
+                        .header(USER_ID_REQUEST_HEADER, userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        verify(bookingClient, never()).create(bookingCreateDto, userId);
+    }
+
+    @SneakyThrows
+    @Test
+    public void create_whenEndBeforeStart_thenThrowException() {
+        val start = LocalDateTime.now().plusDays(3);
+        val bookingCreateDto = BookingCreateDto.builder()
+                .itemId(itemId)
+                .start(start)
+                .end(start.minusDays(1))
+                .build();
+
+        mockMvc.perform(post(BASE_ENDPOINT)
+                        .content(objectMapper.writeValueAsBytes(bookingCreateDto))
+                        .header(USER_ID_REQUEST_HEADER, userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        verify(bookingClient, never()).create(bookingCreateDto, userId);
     }
 }

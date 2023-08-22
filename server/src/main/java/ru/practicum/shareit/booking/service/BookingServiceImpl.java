@@ -12,7 +12,6 @@ import ru.practicum.shareit.booking.model.BookingStateForSearch;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.common.NotFoundException;
-import ru.practicum.shareit.common.Utils;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.DaoItem;
 import ru.practicum.shareit.user.model.User;
@@ -138,8 +137,6 @@ public class BookingServiceImpl implements BookingService {
     @Transactional(readOnly = true)
     @Override
     public List<BookingDto> getUserBookingsByState(long userId, BookingStateForSearch searchState, Integer from, Integer size) {
-        Utils.validatePageableParams(from, size);
-
         // Проверяем существует ли пользователь.
         daoUser.checkUserExists(userId);
 
@@ -150,8 +147,6 @@ public class BookingServiceImpl implements BookingService {
     @Transactional(readOnly = true)
     @Override
     public List<BookingDto> getBookingsByItemOwner(long ownerId, BookingStateForSearch searchState, Integer from, Integer size) {
-        Utils.validatePageableParams(from, size);
-
         // Проверяем существует ли пользователь.
         daoUser.checkUserExists(ownerId);
 

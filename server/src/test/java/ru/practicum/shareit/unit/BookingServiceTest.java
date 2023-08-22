@@ -313,56 +313,6 @@ public class BookingServiceTest {
     }
 
     @Test
-    public void getUserBookingsByState_whenWithPageable00_thenThrowException() {
-        final Integer from = 0;
-        final Integer size = 0;
-        assertThrows(ValidationException.class, () -> bookingService.getUserBookingsByState(bookerId, BookingStateForSearch.ALL, from, size));
-
-        verify(daoUser, never()).checkUserExists(anyLong());
-        verify(bookingRepository, never()).getUserBookingsByState(anyLong(), any(BookingStateForSearch.class), any(Pageable.class));
-    }
-
-    @Test
-    public void getUserBookingsByState_whenWithPageableFromNegative_thenThrowException() {
-        final Integer from = -1;
-        final Integer size = 10;
-        assertThrows(ValidationException.class, () -> bookingService.getUserBookingsByState(bookerId, BookingStateForSearch.ALL, from, size));
-
-        verify(daoUser, never()).checkUserExists(anyLong());
-        verify(bookingRepository, never()).getUserBookingsByState(anyLong(), any(BookingStateForSearch.class), any(Pageable.class));
-    }
-
-    @Test
-    public void getUserBookingsByState_wheWithPageableSizeNegative_thenThrowException() {
-        final Integer from = 0;
-        final Integer size = -100;
-        assertThrows(ValidationException.class, () -> bookingService.getUserBookingsByState(bookerId, BookingStateForSearch.ALL, from, size));
-
-        verify(daoUser, never()).checkUserExists(anyLong());
-        verify(bookingRepository, never()).getUserBookingsByState(anyLong(), any(BookingStateForSearch.class), any(Pageable.class));
-    }
-
-    @Test
-    public void getUserBookingsByState_whenWithPageableFromNull_thenThrowException() {
-        final Integer from = null;
-        final Integer size = 100;
-        assertThrows(ValidationException.class, () -> bookingService.getUserBookingsByState(bookerId, BookingStateForSearch.ALL, from, size));
-
-        verify(daoUser, never()).checkUserExists(anyLong());
-        verify(bookingRepository, never()).getUserBookingsByState(anyLong(), any(BookingStateForSearch.class), any(Pageable.class));
-    }
-
-    @Test
-    public void getUserBookingsByState_whenWithPageableSizeNull_thenThrowException() {
-        final Integer from = 0;
-        final Integer size = null;
-        assertThrows(ValidationException.class, () -> bookingService.getUserBookingsByState(bookerId, BookingStateForSearch.ALL, from, size));
-
-        verify(daoUser, never()).checkUserExists(anyLong());
-        verify(bookingRepository, never()).getUserBookingsByState(anyLong(), any(BookingStateForSearch.class), any(Pageable.class));
-    }
-
-    @Test
     public void getBookingsByItemOwner_whenOk_thenReturnBookings() {
         doNothing().when(daoUser).checkUserExists(anyLong());
 
