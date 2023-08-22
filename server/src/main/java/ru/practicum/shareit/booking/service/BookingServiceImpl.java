@@ -11,7 +11,6 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStateForSearch;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.booking.validation.BookingDatesValidator;
 import ru.practicum.shareit.common.NotFoundException;
 import ru.practicum.shareit.common.Utils;
 import ru.practicum.shareit.item.model.Item;
@@ -19,7 +18,6 @@ import ru.practicum.shareit.item.repository.DaoItem;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.DaoUser;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,9 +42,6 @@ public class BookingServiceImpl implements BookingService {
         // Проверяем, что вещь существует.
         final long itemId = newBooking.getItemId();
         final Item item = daoItem.getItemById(itemId);
-
-        // Валидация (начало и конец бронирования)
-        validateBookingCreateDto(newBooking);
 
         // Проверяем, что пользователь не владелец вещи (нелогично у самого себя бронировать вещь).
         if (item.getOwner().getId().equals(userId)) {
@@ -162,13 +157,6 @@ public class BookingServiceImpl implements BookingService {
 
         final List<Booking> bookingsByOwner = bookingRepository.getBookingsByItemOwner(ownerId, searchState, createOffsetBasedPageRequest(from, size));
         return BookingMapper.toBookingDtoList(bookingsByOwner);
-    }
-
-    private void validateBookingCreateDto(BookingCreateDto bookingCreateDto) {
-        final LocalDateTime start = bookingCreateDto.getStart();
-        final LocalDateTime end = bookingCreateDto.getEnd();
-
-        BookingDatesValidator.validate(start, end);
     }
 
     private Booking getBooking(long bookingId) {

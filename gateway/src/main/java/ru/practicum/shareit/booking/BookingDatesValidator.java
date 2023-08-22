@@ -1,7 +1,8 @@
-package ru.practicum.shareit.booking.validation;
+package ru.practicum.shareit.booking;
 
 import lombok.experimental.UtilityClass;
-import ru.practicum.shareit.common.ValidationException;
+import ru.practicum.shareit.booking.dto.BookingCreateDto;
+import ru.practicum.shareit.validation.ValidationException;
 
 import java.time.LocalDateTime;
 
@@ -15,5 +16,9 @@ public class BookingDatesValidator {
         if (end.isBefore(start)) {
             throw new ValidationException("Дата конца бронирования не может быть раньше даты начала бронирования!");
         }
+    }
+
+    public void validate(BookingCreateDto bookingCreateDto) {
+        validate(bookingCreateDto.getStart(), bookingCreateDto.getEnd());
     }
 }

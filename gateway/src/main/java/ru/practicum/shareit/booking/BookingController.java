@@ -29,6 +29,7 @@ public class BookingController {
     public ResponseEntity<Object> create(@RequestHeader(USER_ID_REQUEST_HEADER) long userId,
                                          @Valid @RequestBody BookingCreateDto newBooking) {
         log.info(String.format("POST /bookings, body = %s, %s = %s", newBooking, USER_ID_REQUEST_HEADER, userId));
+        BookingDatesValidator.validate(newBooking);  // Валидация (начало и конец бронирования)
         return bookingClient.create(newBooking, userId);
     }
 
